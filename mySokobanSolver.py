@@ -252,42 +252,109 @@ def can_go_there(warehouse, dst):
       True if the worker can walk to cell dst=(row,column) without pushing any box
       False otherwise
     '''
-    
-    ##         "INSERT YOUR CODE HERE"
 
-    ##converts warehouse to string
-    warehouse_str = str(warehouse)
-    print(warehouse_str)
+#     position = [warehouse.worker]
+#     visited = []
 
-    theCoordinates = []
+#     for i in range(0, 5):
+#         if position.pop() == (dst[1], dst[0]):
+#             return True
+#         print(position)
+#         visited.append(position)
 
-    data = []
-    for each in warehouse_str:
-        data.append(each)
-    print(data)
+#         next_doors = neighbours(dst[0], dst[1])
+#         print(visited)
 
-    #counts the number of elements before creating a new line
-    count = 0
-    for each in data:
-        if each != '\n':
-            count += 1
-        else:
-            break
+#         for next_door in next_doors.values():
+#             if (next_door not in position and next_door not in visited and
+#                 next_door not in warehouse.walls and next_door not in warehouse.boxes):
+#                 position.append(next_door)
+#     return False
 
-    #removes '\n' in the list
-    for i in data:
-        if i == '\n':
-            data.remove(i)
+    #splits string by new line
+    warehouse_list = str(warehouse).split('\n')
+
+    worker_position = warehouse.worker
+
+    if worker_position == (dst[0], dst[1]):
+        return True
+    elif (warehouse_list[dst[0]][dst[1]] not in warehouse.boxes and 
+          warehouse_list[dst[0]][dst[1]] not in warehouse.walls):
+          return True
+    else:
+        return False
+
+def neighbours(x, y):
+    return {
+            'left':(x - 1, y),
+            'right':(x + 1, y),
+            'up':(x, y + 1),
+            'down':(x, y - 1)
+           }
 
 
-    def chunks(l, n):
-        #split
-        for i in range(0, len(l), n):
-            yield l[i:i+n]
-    print(list(chunks(data, count)))
 
-    
-    #raise NotImplementedError()
+
+    # worker_position = warehouse.worker
+    # print(worker_position)
+
+    # if worker_position == (dst[0], dst[1]):
+    #     return True
+
+    # #Neighbouring cells
+    # x_position, y_position = worker_position
+    # neighours = {
+    #                 'left':(x_position-1, y_position),
+    #                 'right':(x_position+1, y_position),
+    #                 'up':(x_position, y_position+1),
+    #                 'down':(x_position, y_position-1)
+    #             }
+    # print(neighours.values())
+    # print("destination {0}", dst)
+    # for direction in neighours.values():
+    #     print(direction)
+    #     if direction not in warehouse.walls and direction not in warehouse.boxes and direction == dst:
+    #         return True
+    # return False
+
+
+
+
+
+    #Seperated characters appended to list
+    # data = []
+    # for each in warehouse_str:
+    #     data.append(each)
+
+    # #counts the number of elements before creating a new line
+    # count = 0
+    # for each in data:
+    #     if each != '\n':
+    #         count += 1
+    #     else:
+    #         break
+
+    # #removes '\n' in the list
+    # for i in data:
+    #     if i == '\n':
+    #         data.remove(i)
+
+
+    # #creates a list
+    # def chunks(l, n):
+    #     for i in range(0, len(l), n):
+    #         yield l[i:i+n]
+
+    # #the coordinates (x,y)
+    # theCoordinates = (list(chunks(data, count)))
+    # print(theCoordinates)
+    # print(dst)
+    #print(theCoordinates[dst[0]][dst[1]])
+
+    # if theCoordinates[dst[0]][dst[1]] == '#' or '$' or '@':
+    #     return False
+    # else:
+    #     return True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

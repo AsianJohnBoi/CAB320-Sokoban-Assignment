@@ -101,7 +101,7 @@ def test_can_go_there():
     puzzle_t1 ='#######\n#@ $. #\n#######'
     wh = Warehouse()    
     wh.extract_locations(puzzle_t1.split(sep='\n'))
-    # first test
+    #first test
     answer = can_go_there(wh,(1,2))
     expected_answer = True
     fcn = test_can_go_there
@@ -112,7 +112,7 @@ def test_can_go_there():
         print(fcn.__name__, ' failed!  :-(\n')
         print('Expected ');print(expected_answer)
         print('But, received ');print(answer)
-    # second test
+    #second test
     answer = can_go_there(wh,(1,5))
     expected_answer = False
     print('<<  Second test of {} >>'.format(fcn.__name__))
@@ -123,7 +123,7 @@ def test_can_go_there():
         print('Expected ');print(expected_answer)
         print('But, received ');print(answer)
 
-  
+
 def test_solve_sokoban_macro():
     puzzle_t2 ='#######\n#@ $ .#\n#######'
     wh = Warehouse()    
