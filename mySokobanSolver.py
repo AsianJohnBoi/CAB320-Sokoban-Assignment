@@ -69,7 +69,7 @@ def taboo_cells(warehouse):
     wall_square = '#'
     tabboo_square = 'X' 
 
-    def is_corner(warehouse, x, y, wall=0)
+    def is_corner(warehouse, x, y, wall=0):
         num_ud_walls = 0
         num_lr_walls = 0
 
@@ -254,8 +254,40 @@ def can_go_there(warehouse, dst):
     '''
     
     ##         "INSERT YOUR CODE HERE"
+
+    ##converts warehouse to string
+    warehouse_str = str(warehouse)
+    print(warehouse_str)
+
+    theCoordinates = []
+
+    data = []
+    for each in warehouse_str:
+        data.append(each)
+    print(data)
+
+    #counts the number of elements before creating a new line
+    count = 0
+    for each in data:
+        if each != '\n':
+            count += 1
+        else:
+            break
+
+    #removes '\n' in the list
+    for i in data:
+        if i == '\n':
+            data.remove(i)
+
+
+    def chunks(l, n):
+        #split
+        for i in range(0, len(l), n):
+            yield l[i:i+n]
+    print(list(chunks(data, count)))
+
     
-    raise NotImplementedError()
+    #raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
