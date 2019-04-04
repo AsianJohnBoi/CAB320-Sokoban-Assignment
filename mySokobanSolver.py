@@ -23,6 +23,9 @@ SokobanPuzzle.macro = False
 import search
 
 import sokoban
+import math
+
+from search import *
 
 
 
@@ -252,110 +255,70 @@ def can_go_there(warehouse, dst):
       True if the worker can walk to cell dst=(row,column) without pushing any box
       False otherwise
     '''
+    def heuristic(n):
+        '''
+        Determine the heuristic distance between the worker and the destination
 
-#     position = [warehouse.worker]
-#     visited = []
+        @param n: the node state (x, y)
 
-#     for i in range(0, 5):
-#         if position.pop() == (dst[1], dst[0]):
-#             return True
-#         print(position)
-#         visited.append(position)
+        @return
+          The heuristic distance sqrt(((x_worker - x_destination) ^2) + ((y_worker - y_destination) ^ 2))
 
-#         next_doors = neighbours(dst[0], dst[1])
-#         print(visited)
+        '''
+        return math.sqrt(((n.state[0] - dst[0]) ** 2) + ((n.state[1] - dst[1]) ** 2)) 
 
-#         for next_door in next_doors.values():
-#             if (next_door not in position and next_door not in visited and
-#                 next_door not in warehouse.walls and next_door not in warehouse.boxes):
-#                 position.append(next_door)
-#     return False
+    # A* graph search used on the NextPath search
+    node = astar_graph_search(NextPath(warehouse.worker, warehouse, (dst[1], dst[0])), heuristic)
 
-    #splits string by new line
-    warehouse_list = str(warehouse).split('\n')
+    # If found a node, return True otherwise False
+    return True if node is not None else False
 
-    worker_position = warehouse.worker
+# Worker's offsets. Left, right, up and down
+worker_offsets = {'left':(-1, 0), 'right':(1, 0), 'up':(0, -1), 'down':(0, 1) } 
 
-    if worker_position == (dst[0], dst[1]):
-        return True
-    elif (warehouse_list[dst[0]][dst[1]] not in warehouse.boxes and 
-          warehouse_list[dst[0]][dst[1]] not in warehouse.walls):
-          return True
-    else:
-        return False
+class NextPath(search.Problem):
+    def __init__(self, initial, warehouse, goal=None):
+        '''
+        Assign the passed values
 
-def neighbours(x, y):
-    return {
-            'left':(x - 1, y),
-            'right':(x + 1, y),
-            'up':(x, y + 1),
-            'down':(x, y - 1)
-           }
+        @param
+            initial: the initial value of the worker
+            warehouse: the warehouse object
+            goal: the destination
+        '''
+        self.initial = initial
+        self.warehouse = warehouse
+        self.goal = goal
 
+    def result(self, state, nextMove):
+        '''
+        Apply the next move to the current state
 
+        @param 
+            state: the current state
+            nextMove: the worker's next move
 
+        @return
+            the next state
+        '''
+        nextState = state[0] + nextMove[0], state[1] + nextMove[1]
+        return nextState
 
-    # worker_position = warehouse.worker
-    # print(worker_position)
+    def actions(self, state):
+        '''
+        Determine the next action for the worker using the offset values
 
-    # if worker_position == (dst[0], dst[1]):
-    #     return True
+        @param
+            state: the current state of the worker
 
-    # #Neighbouring cells
-    # x_position, y_position = worker_position
-    # neighours = {
-    #                 'left':(x_position-1, y_position),
-    #                 'right':(x_position+1, y_position),
-    #                 'up':(x_position, y_position+1),
-    #                 'down':(x_position, y_position-1)
-    #             }
-    # print(neighours.values())
-    # print("destination {0}", dst)
-    # for direction in neighours.values():
-    #     print(direction)
-    #     if direction not in warehouse.walls and direction not in warehouse.boxes and direction == dst:
-    #         return True
-    # return False
-
-
-
-
-
-    #Seperated characters appended to list
-    # data = []
-    # for each in warehouse_str:
-    #     data.append(each)
-
-    # #counts the number of elements before creating a new line
-    # count = 0
-    # for each in data:
-    #     if each != '\n':
-    #         count += 1
-    #     else:
-    #         break
-
-    # #removes '\n' in the list
-    # for i in data:
-    #     if i == '\n':
-    #         data.remove(i)
-
-
-    # #creates a list
-    # def chunks(l, n):
-    #     for i in range(0, len(l), n):
-    #         yield l[i:i+n]
-
-    # #the coordinates (x,y)
-    # theCoordinates = (list(chunks(data, count)))
-    # print(theCoordinates)
-    # print(dst)
-    #print(theCoordinates[dst[0]][dst[1]])
-
-    # if theCoordinates[dst[0]][dst[1]] == '#' or '$' or '@':
-    #     return False
-    # else:
-    #     return True
-
+        @return
+            the next possible position that isn't a wall or a box
+        '''
+        for worker_offset in worker_offsets.values():
+            nextState = state[0] + worker_offset[0], state[1] + worker_offset[1]
+            if nextState not in self.warehouse.walls and nextState not in self.warehouse.boxes:
+                yield worker_offset
+    
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def solve_sokoban_macro(warehouse):
