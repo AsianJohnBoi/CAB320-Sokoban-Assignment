@@ -26,6 +26,7 @@ import sokoban
 import math
 
 from search import *
+from sokoban import find_2D_iterator
 
 
 
@@ -39,7 +40,7 @@ def my_team():
     
     '''
 #    return [ (1234567, 'Ada', 'Lovelace'), (1234568, 'Grace', 'Hopper'), (1234569, 'Eva', 'Tardos') ]
-    raise NotImplementedError()
+    return [(9935924, 'Greyden', 'Scott'), (9935924,'John', 'Santias'), (9935924,'Alex', 'Holm')]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -67,26 +68,27 @@ def taboo_cells(warehouse):
     '''
 
     # Constants
-    squares_to_remove = ['@', '$']
-    target_squares = ['*', '!', '.']
+    squares_to_remove = ['$', '@']
+    target_squares = ['.', '!', '*']
     wall_square = '#'
-    tabboo_square = 'X' 
+    taboo_square = 'X'
 
     def is_corner(warehouse, x, y, wall=0):
+
         num_ud_walls = 0
         num_lr_walls = 0
 
-        for (dx, dy) in [(0,1),(0,-1)]:
+        for (dx, dy) in [(0, 1), (0, -1)]:
             if warehouse[y + dy][x + dx] == wall_square:
                 num_ud_walls += 1
 
-        for (dx, dy) in [(1,0),(-1,0)]:
+        for (dx, dy) in [(1, 0), (-1, 0)]:
             if warehouse[y + dy][x + dx] == wall_square:
-                num_lr_walls += 1  
+                num_lr_walls += 1
         if wall:
             return (num_ud_walls >= 1) or (num_lr_walls >= 1)
         else:
-            return (num_ud_walls >=1) or (num_lr_walls >= 1)
+            return (num_ud_walls >= 1) and (num_lr_walls >= 1)
 
     warehouse_str = str(warehouse)
 
@@ -96,49 +98,49 @@ def taboo_cells(warehouse):
     warehouse_2d = [list(line) for line in warehouse_str.split('\n')]
 
     for y in range(len(warehouse_2d) - 1):
-        if not inside:
-            if warehouse_2d[y][x] == wall_square:
-                inside = True
+        inside = False
+        for x in range(len(warehouse_2d[0]) - 1):
+
+            if not inside:
+                if warehouse_2d[y][x] == wall_square:
+                    inside = True
             else:
+
                 if all([cell == ' ' for cell in warehouse_2d[y][x:]]):
                     break
                 if warehouse_2d[y][x] not in target_squares:
                     if warehouse_2d[y][x] != wall_square:
                         if is_corner(warehouse_2d, x, y):
-                            warehouse_2d[y][x] = tabboo_square
+                            warehouse_2d[y][x] = taboo_square
 
-
-    for y in range(1, len(warehouse_2d) -1):
+    for y in range(1, len(warehouse_2d) - 1):
         for x in range(1, len(warehouse_2d[0]) - 1):
-            if warehouse_2d[y][x] == tabboo_square and is_corner(warehouse_2d, x, y):
-                row = warehouse_2d[y[x + 1]]
+            if warehouse_2d[y][x] == taboo_square and is_corner(warehouse_2d, x, y):
+                row = warehouse_2d[y][x + 1:]
                 col = [row[x] for row in warehouse_2d[y + 1:][:]]
-                
+
                 for x2 in range(len(row)):
                     if row[x2] in target_squares or row[x2] == wall_square:
                         break
-                    if row[x2] == tabboo_square and is_corner(warehouse_2d, x2 + x + 1, y):
-                        if all([is_corner(warehouse_2d, x3, y, 1)
-                            for x3 in range(x + 1, x2 + x + 1)]):
+                    if row[x2] == taboo_square and is_corner(warehouse_2d, x2 + x + 1, y):
+                        if all([is_corner(warehouse_2d, x3, y, 1) for x3 in range(x + 1, x2 + x + 1)]):
                             for x4 in range(x + 1, x2 + x + 1):
                                 warehouse_2d[y][x4] = 'X'
-
+ 
                 for y2 in range(len(col)):
-                    if col[y2] in target_square or col[y2] == wall_square:
+                    if col[y2] in target_squares or col[y2] == wall_square:
                         break
-                    if col[y2] == tabboo_square and is_corner(warehouse_2d, x, y2 + y + 1):
-                        if all([is_corner(warehouse_2d, x, y3, 1)
-                            for y3 in range(y + 1, y2 + y + 1)]):
-                            for y4 in range(y+1, y2 + y + 1):
+                    if col[y2] == taboo_square and is_corner(warehouse_2d, x, y2 + y + 1):
+                        if all([is_corner(warehouse_2d, x, y3, 1) for y3 in range(y + 1, y2 + y + 1)]):
+                            for y4 in range(y + 1, y2 + y + 1):
                                 warehouse_2d[y4][x] = 'X'
-
 
     warehouse_str = '\n'.join([''.join(line) for line in warehouse_2d])
 
-    for char in target_square:
+    for char in target_squares:
         warehouse_str = warehouse_str.replace(char, ' ')
-        
-    raise warehouse_str
+    return warehouse_str
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
