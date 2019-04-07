@@ -218,9 +218,109 @@ def check_action_seq(warehouse, action_seq):
                string returned by the method  Warehouse.__str__()
     '''
     
-    ##         "INSERT YOUR CODE HERE"
-    
-    raise NotImplementedError()
+    x, y = warehouse.worker
+
+    failed_sequence = 'Failure'
+
+    for data in action_seq:
+        if data == 'Left':
+            print('left')
+            
+            next_x = x - 1
+            next_y = y
+            
+            if (next_x, next_y) in warehouse.walls:
+                return failed_sequence  
+            elif (next_x, next_y) in warehouse.boxes:
+                if (next_x - 1, next_y) not in warehouse.walls and (
+                        next_x, next_y) in warehouse.boxes:
+
+                    warehouse.boxes.remove((next_x, next_y))
+                    warehouse.boxes.append((next_x - 1, next_y))
+                    x = next_x
+                else:
+                    return failed_sequence  
+            else:
+                x = next_x
+        elif data == 'Right':
+            print('right')
+            next_x = x + 1
+            next_y = y
+            if (next_x, next_y) in warehouse.walls:
+                return failed_sequence  
+            elif (next_x, next_y) in warehouse.boxes:
+                if (next_x + 1, next_y) not in warehouse.walls and (next_x, next_y) in warehouse.boxes:
+
+                    warehouse.boxes.remove((next_x, next_y))
+                    warehouse.boxes.append((next_x + 1, next_y))
+                    x = next_x
+                else:
+                    return failed_sequence  
+            else:
+                x = next_x
+        elif data == 'Up':
+            print('up')
+            next_y = y - 1
+            next_x = x
+            if (next_x, next_y) in warehouse.walls:
+                return failed_sequence  
+            elif (next_x, next_y) in warehouse.boxes:
+                if (next_x, next_y - 1) not in warehouse.walls and (next_x, next_y) in warehouse.boxes:
+
+                    warehouse.boxes.remove((next_x, next_y))
+                    warehouse.boxes.append((next_x, next_y - 1))
+                    y = next_y
+                else:
+                    return failed_sequence  
+            else:
+                y = next_y
+        elif data == 'Down':
+            print('down')
+            next_y = y + 1
+            next_x = x
+            if (next_x, next_y) in warehouse.walls:
+                return failed_sequence  
+            elif (next_x, next_y) in warehouse.boxes:
+                if (next_x, next_y + 1) not in warehouse.walls and (next_x, next_y) in warehouse.boxes:
+
+                    warehouse.boxes.remove((next_x, next_y))
+                    warehouse.boxes.append((next_x, next_y + 1))
+                    y = next_y
+                else:
+                    return failed_sequence  
+            else:
+                y = next_y
+        else:
+            raise ValueError("No action sequence")
+
+    applicable_sequence = 'Yes'
+    print(applicable_sequence)
+
+    warehouse.worker = x, y
+
+    X, Y = zip(*warehouse.walls) 
+    x_size, y_size = 1 + max(X), 1 + max(Y)
+
+    vis = [[" "] * x_size for z in range(y_size)]
+    for (x, y) in warehouse.walls:
+        vis[y][x] = "#"
+    for (x, y) in warehouse.targets:
+        vis[y][x] = "."
+
+    if vis[warehouse.worker[1]][warehouse.worker[0]] == ".":
+        vis[warehouse.worker[1]][warehouse.worker[0]] = "!"
+    else:
+        vis[warehouse.worker[1]][warehouse.worker[0]] = "@"
+
+    for (x, y) in warehouse.boxes:
+        if vis[y][x] == ".": 
+            vis[y][x] = "*"
+        else:
+            vis[y][x] = "$"
+    warehouse = "\n".join(["".join(line) for line in vis])
+
+    print(str(warehouse))
+    return str(warehouse)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
