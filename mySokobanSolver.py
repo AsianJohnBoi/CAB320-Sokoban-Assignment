@@ -39,7 +39,7 @@ def my_team():
     of triplet of the form (student_number, first_name, last_name)
     
     '''
-#    return [ (1234567, 'Ada', 'Lovelace'), (1234568, 'Grace', 'Hopper'), (1234569, 'Eva', 'Tardos') ]
+
     return [(9935924, 'Greyden', 'Scott'), (9935924,'John', 'Santias'), (9935924,'Alex', 'Holm')]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -340,7 +340,8 @@ def solve_sokoban_elem(warehouse):
             If the puzzle is already in a goal state, simply return []
     '''
     
-    ##         "INSERT YOUR CODE HERE"
+    macro_actions = solve_soboban_macro(warehouse)
+    #need to complete solve_sokoban_macro function to complete this
     
     raise NotImplementedError()
 
@@ -361,7 +362,7 @@ def can_go_there(warehouse, dst):
         '''
         Determine the heuristic distance between the worker and the destination
 
-        @param n: the node state (x, y)
+        @param n: the node state "<Node (x, y)>"
 
         @return
           The heuristic distance sqrt(((x_worker - x_destination) ^2) + ((y_worker - y_destination) ^ 2))
@@ -370,15 +371,53 @@ def can_go_there(warehouse, dst):
         return math.sqrt(((n.state[0] - dst[0]) ** 2) + ((n.state[1] - dst[1]) ** 2)) 
 
     # A* graph search used on the NextPath search
-    node = astar_graph_search(NextPath(warehouse.worker, warehouse, (dst[1], dst[0])), heuristic)
+    node = astar_graph_search(PathScanner(warehouse.worker, warehouse, (dst[1], dst[0])), heuristic)
 
     # If found a node, return True otherwise False
     return True if node is not None else False
 
 # Worker's offsets. Left, right, up and down
 worker_offsets = {'left':(-1, 0), 'right':(1, 0), 'up':(0, -1), 'down':(0, 1) } 
+    
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class NextPath(search.Problem):
+def solve_sokoban_macro(warehouse):
+    '''    
+    Solve using macro actions the puzzle defined in the warehouse passed as
+    a parameter. A sequence of macro actions should be 
+    represented by a list M of the form
+            [ ((r1,c1), a1), ((r2,c2), a2), ..., ((rn,cn), an) ]
+    For example M = [ ((3,4),'Left') , ((5,2),'Up'), ((12,4),'Down') ] 
+    means that the worker first goes the box at row 3 and column 4 and pushes it left,
+    then goes to the box at row 5 and column 2 and pushes it up, and finally
+    goes the box at row 12 and column 4 and pushes it down.
+    
+    @param warehouse: a valid Warehouse object
+
+    @return
+        If puzzle cannot be solved return the string 'Impossible'
+        Otherwise return M a sequence of macro actions that solves the puzzle.
+        If the puzzle is already in a goal state, simply return []
+    '''
+    
+    #Need to complete sokoban puzzle to complete this function
+
+    #$ is the box, . is the target
+    #######
+    #@ $ .#
+    #######
+
+    #The box is on the target square (*)
+    #######
+    #@   *#
+    #######
+
+   # raise NotImplementedError()
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# - - - - -  - - - - - - - Other classess and functions - - - - - - - - - - - - 
+class PathScanner(search.Problem):
     def __init__(self, initial, warehouse, goal=None):
         '''
         Assign the passed values
@@ -420,31 +459,3 @@ class NextPath(search.Problem):
             nextState = state[0] + worker_offset[0], state[1] + worker_offset[1]
             if nextState not in self.warehouse.walls and nextState not in self.warehouse.boxes:
                 yield worker_offset
-    
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-def solve_sokoban_macro(warehouse):
-    '''    
-    Solve using macro actions the puzzle defined in the warehouse passed as
-    a parameter. A sequence of macro actions should be 
-    represented by a list M of the form
-            [ ((r1,c1), a1), ((r2,c2), a2), ..., ((rn,cn), an) ]
-    For example M = [ ((3,4),'Left') , ((5,2),'Up'), ((12,4),'Down') ] 
-    means that the worker first goes the box at row 3 and column 4 and pushes it left,
-    then goes to the box at row 5 and column 2 and pushes it up, and finally
-    goes the box at row 12 and column 4 and pushes it down.
-    
-    @param warehouse: a valid Warehouse object
-
-    @return
-        If puzzle cannot be solved return the string 'Impossible'
-        Otherwise return M a sequence of macro actions that solves the puzzle.
-        If the puzzle is already in a goal state, simply return []
-    '''
-    
-    ##         "INSERT YOUR CODE HERE"
-    
-    raise NotImplementedError()
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
