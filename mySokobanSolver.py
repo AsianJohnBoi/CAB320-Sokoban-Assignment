@@ -191,17 +191,17 @@ class SokobanPuzzle(search.Problem):
         #If allow_taboo_push is True, return all legal moves including the box on a taboo cell
         if allow_taboo_push:
 
-            #Find badspots when player is moved to a spot
-            bad_spots = set(find_2D_iterator(taboo_cells(the_warehouse), "X"))
+            #Find bad cell spots
+            is_cell_taboo = set(find_2D_iterator(taboo_cells(the_warehouse), "X"))
 
 
             #find directions for the box
             for box in the_warehouse.boxes:
                 for offset in worker_offsets:
-                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
                     b_position = add_coordinates(box, offset)
+                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
 
-                    if can_go_there(the_warehouse, p_position) and b_position not in bad_spots \
+                    if can_go_there(the_warehouse, p_position) and b_position not in is_cell_taboo \
                         and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls:
                             yield(box, direction_of_offset(offset))
 
@@ -211,8 +211,8 @@ class SokobanPuzzle(search.Problem):
             #find directions for the box
             for box in the_warehouse.boxes:
                 for offset in worker_offsets:
-                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
                     b_position = add_coordinates(box, offset)
+                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
 
                     if can_go_there(the_warehouse, p_position) \
                         and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls:
