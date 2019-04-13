@@ -143,7 +143,7 @@ def test_solve_sokoban_macro():
     
 
 if __name__ == "__main__":
-    pass    
+    pass   
 #    print(my_team())  # should print your team
 
 #    test_taboo_cells() 

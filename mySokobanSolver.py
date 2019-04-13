@@ -144,7 +144,6 @@ def taboo_cells(warehouse):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
 class SokobanPuzzle(search.Problem):
     '''
     An instance of the class 'SokobanPuzzle' represents a Sokoban puzzle.
@@ -180,7 +179,8 @@ class SokobanPuzzle(search.Problem):
 
     
     def __init__(self, warehouse):
-        raise NotImplementedError()
+       self.warehouse = warehouse
+
 
     def actions(self, state):
         """
@@ -190,6 +190,45 @@ class SokobanPuzzle(search.Problem):
         'self.allow_taboo_push' and 'self.macro' should be tested to determine
         what type of list of actions is to be returned.
         """
+
+        #Warehouse current state
+        the_warehouse = sokoban.Warehouse()
+
+        #Positional information of boxes, worker, targets and walls extracted
+        the_warehouse.extract_locations(state[1].split(sep="\n"))
+
+        #Find badspots when player is moved to an empty spot
+        bad_spots = set(find_2D_iterator(taboo_cells(the_warehouse), " "))
+
+
+        #find directions for the box
+        for box in the_warehouse.boxes:
+            for offset in worker_offsets:
+                p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
+                b_position = add_coordinates(box, offset)
+
+                if can_go_there(the_warehouse, p_position) and b_position not in bad_spots \
+                    and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls
+
+                    yield(box, direction_of_offset(offset))
+
+
+
+
+        # by default does not allow push of boxes on taboo cells
+        SokobanPuzzle.allow_taboo_push = False 
+
+        # use elementary actions if self.macro == False
+        SokobanPuzzle.macro = False 
+
+        # use elementary actions 
+        if self.macro == False
+            SokobanPuzzle.macro = False 
+
+
+        raise NotImplementedError
+
+    def result(self, state):
         raise NotImplementedError
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -375,9 +414,6 @@ def can_go_there(warehouse, dst):
 
     # If found a node, return True otherwise False
     return True if node is not None else False
-
-# Worker's offsets. Left, right, up and down
-worker_offsets = {'left':(-1, 0), 'right':(1, 0), 'up':(0, -1), 'down':(0, 1) } 
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -459,3 +495,69 @@ class PathScanner(search.Problem):
             nextState = state[0] + worker_offset[0], state[1] + worker_offset[1]
             if nextState not in self.warehouse.walls and nextState not in self.warehouse.boxes:
                 yield worker_offset
+
+# Worker's offsets (left, right, up and down) from its current position
+worker_offsets = {'left':(-1, 0), 'right':(1, 0), 'up':(0, -1), 'down':(0, 1) } 
+
+def get_coordinates(warehouse):
+    #Seperated characters appended to list
+    warehouse_list = str(warehouse).split('\n')
+
+
+    #Seperated characters appended to list
+    data = []
+    for each in str(warehouse):
+        data.append(each)
+
+    #counts the number of elements before creating a new line
+    count = 0
+    for each in warehouse_list:
+        if each != '\n':
+            count += 1
+        else:
+            break
+
+    #removes '\n' in the list
+    for i in data:
+        if i == '\n':
+            data.remove(i)
+
+    #creates a list of coordinates (x,y)
+    def chunks(l, n):
+        for i in range(0, len(l), n):
+            yield l[i:i+n]
+
+    theCoordinates = (list(chunks(data, count)))
+    print(theCoordinates)
+
+
+def flip_coordinates(c):
+    return c[1], c[0]
+
+def add_coordinates(c1, c2):
+    return c1[0] + c2[0], c1[1] + c2[1]  
+
+def offset_of_direction(direction):
+        if offset == "Up": 
+            return (0, -1)
+        elif offset == "Down": 
+            return (0, 1)
+        elif offset == "Left": 
+            return (-1, 0)
+        elif offset == "Right": 
+            return (1, 0)
+        else:
+            raise ValueError("Invalid direction")  
+
+
+def direction_of_offset(offset):
+        if offset == (0, -1): 
+            return "Up"
+        elif offset == (0, 1): 
+            return "Down"
+        elif offset == (-1, 0): 
+            return "Left"
+        elif offset == (1, 0): 
+            return "Right"
+        else:
+            raise ValueError("Invalid offset")
