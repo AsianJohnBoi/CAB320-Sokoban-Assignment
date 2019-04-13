@@ -165,21 +165,12 @@ class SokobanPuzzle(search.Problem):
     If self.macro is set True, the 'actions' function should return 
     macro actions. If self.macro is set False, the 'actions' function should 
     return elementary actions.
-    
-    
     '''
-    #
-    #         "INSERT YOUR CODE HERE"
-    #
-    #     Revisit the sliding puzzle and the pancake puzzle for inspiration!
-    #
-    #     Note that you will need to add several functions to 
-    #     complete this class. For example, a 'result' function is needed
-    #     to satisfy the interface of 'search.Problem'.
-
     
     def __init__(self, warehouse):
        self.warehouse = warehouse
+       # self.allow_taboo_push = False
+       # self.macro = False
 
 
     def actions(self, state):
@@ -197,39 +188,71 @@ class SokobanPuzzle(search.Problem):
         #Positional information of boxes, worker, targets and walls extracted
         the_warehouse.extract_locations(state[1].split(sep="\n"))
 
-        #Find badspots when player is moved to an empty spot
-        bad_spots = set(find_2D_iterator(taboo_cells(the_warehouse), " "))
+        #If allow_taboo_push is True, return all legal moves including the box on a taboo cell
+        if allow_taboo_push:
+
+            #Find badspots when player is moved to a spot
+            bad_spots = set(find_2D_iterator(taboo_cells(the_warehouse), "X"))
 
 
-        #find directions for the box
-        for box in the_warehouse.boxes:
-            for offset in worker_offsets:
-                p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
-                b_position = add_coordinates(box, offset)
+            #find directions for the box
+            for box in the_warehouse.boxes:
+                for offset in worker_offsets:
+                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
+                    b_position = add_coordinates(box, offset)
 
-                if can_go_there(the_warehouse, p_position) and b_position not in bad_spots \
-                    and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls
+                    if can_go_there(the_warehouse, p_position) and b_position not in bad_spots \
+                        and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls:
+                            yield(box, direction_of_offset(offset))
 
-                    yield(box, direction_of_offset(offset))
+        #if allow_taboo_push is False, taboo and shouldn't be included in list of moves.
+        elif not allow_taboo_push:
 
+            #find directions for the box
+            for box in the_warehouse.boxes:
+                for offset in worker_offsets:
+                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
+                    b_position = add_coordinates(box, offset)
 
+                    if can_go_there(the_warehouse, p_position) \
+                        and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls:
+                            yield(box, direction_of_offset(offset))
 
+        #if macro is true return macro actions
+        if macro:
+            raise NotImplementedError
 
-        # by default does not allow push of boxes on taboo cells
-        SokobanPuzzle.allow_taboo_push = False 
-
-        # use elementary actions if self.macro == False
-        SokobanPuzzle.macro = False 
-
-        # use elementary actions 
-        if self.macro == False
-            SokobanPuzzle.macro = False 
-
+        # if macro is false use elementary actions
+        elif not macro:
+            raise NotImplementedError
 
         raise NotImplementedError
 
-    def result(self, state):
-        raise NotImplementedError
+    def result(self, state, move):
+        '''
+        Move is the direction of the object moved by the worker
+        '''
+
+        #Warehouse current state
+        the_warehouse = sokoban.Warehouse()
+        
+        #Positional information of boxes, worker, targets and walls extracted
+        the_warehouse.extract_locations(state[1].split(sep="\n"))
+
+
+        #remove the box from its old position, set it to the character's offset direction
+        #set the boxes' old position to the worker
+        position = move[0]
+
+        if position in the_warehouse.boxes:
+
+            the_warehouse.worker = position
+            the_warehouse.boxes.remove(position)
+            offset_position = offset_of_direction(move[1])
+            the_warehouse.boxes.append(add_coordinates(position, offset_position))
+            return str(the_warehouse)
+        else:
+            raise ValueError("Box is outside the Warehouse")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
