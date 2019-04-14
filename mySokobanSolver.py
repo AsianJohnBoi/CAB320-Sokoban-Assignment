@@ -89,7 +89,7 @@ def taboo_cells(warehouse):
             return (num_ud_walls >= 1) or (num_lr_walls >= 1)
         else:
             return (num_ud_walls >= 1) and (num_lr_walls >= 1)
-
+        
     warehouse_str = str(warehouse)
 
     for char in squares_to_remove:
@@ -133,7 +133,7 @@ def taboo_cells(warehouse):
                     if col[y2] == taboo_square and is_corner(warehouse_2d, x, y2 + y + 1):
                         if all([is_corner(warehouse_2d, x, y3, 1) for y3 in range(y + 1, y2 + y + 1)]):
                             for y4 in range(y + 1, y2 + y + 1):
-                                warehouse_2d[y4][x] = 'X'
+                                warehouse_2d[y4][x] = taboo_square
 
     warehouse_str = '\n'.join([''.join(line) for line in warehouse_2d])
 
@@ -280,109 +280,42 @@ def check_action_seq(warehouse, action_seq):
                string returned by the method  Warehouse.__str__()
     '''
     
-    x, y = warehouse.worker
-
-    failed_sequence = 'Failure'
-
-    for data in action_seq:
-        if data == 'Left':
-            print('left')
+    for action in action_seq:
+        x, y = warehouse.worker
+        
+        #Get location of two spaces to  check
+        if action == 'Left':
+            space_1 = (x - 1, y)
+            space_2 = (x - 2, y)
             
-            next_x = x - 1
-            next_y = y
+        elif action == 'Right':
+            space_1 = (x + 1, y)
+            space_2 = (x + 2, y)
+        
+        elif action == 'Up':
+            space_1 = (x, y - 1)
+            space_2 = (x, y - 2)
+        
+        elif action == 'Down':
+            space_1 = (x, y + 1)
+            space_2 = (x, y + 2)            
+        
+        #Check if the player has pushed walls
+        if space_1 in warehouse.walls:
+            return 'Failure'
+        
+        if space_1 in warehouse.boxes:
+            if space_2 in warehouse.boxes or space_2 in warehouse.walls:
+                #push two boxes or the box is already nearby the wall
+                return 'Failure'
             
-            if (next_x, next_y) in warehouse.walls:
-                return failed_sequence  
-            elif (next_x, next_y) in warehouse.boxes:
-                if (next_x - 1, next_y) not in warehouse.walls and (
-                        next_x, next_y) in warehouse.boxes:
-
-                    warehouse.boxes.remove((next_x, next_y))
-                    warehouse.boxes.append((next_x - 1, next_y))
-                    x = next_x
-                else:
-                    return failed_sequence  
-            else:
-                x = next_x
-        elif data == 'Right':
-            print('right')
-            next_x = x + 1
-            next_y = y
-            if (next_x, next_y) in warehouse.walls:
-                return failed_sequence  
-            elif (next_x, next_y) in warehouse.boxes:
-                if (next_x + 1, next_y) not in warehouse.walls and (next_x, next_y) in warehouse.boxes:
-
-                    warehouse.boxes.remove((next_x, next_y))
-                    warehouse.boxes.append((next_x + 1, next_y))
-                    x = next_x
-                else:
-                    return failed_sequence  
-            else:
-                x = next_x
-        elif data == 'Up':
-            print('up')
-            next_y = y - 1
-            next_x = x
-            if (next_x, next_y) in warehouse.walls:
-                return failed_sequence  
-            elif (next_x, next_y) in warehouse.boxes:
-                if (next_x, next_y - 1) not in warehouse.walls and (next_x, next_y) in warehouse.boxes:
-
-                    warehouse.boxes.remove((next_x, next_y))
-                    warehouse.boxes.append((next_x, next_y - 1))
-                    y = next_y
-                else:
-                    return failed_sequence  
-            else:
-                y = next_y
-        elif data == 'Down':
-            print('down')
-            next_y = y + 1
-            next_x = x
-            if (next_x, next_y) in warehouse.walls:
-                return failed_sequence  
-            elif (next_x, next_y) in warehouse.boxes:
-                if (next_x, next_y + 1) not in warehouse.walls and (next_x, next_y) in warehouse.boxes:
-
-                    warehouse.boxes.remove((next_x, next_y))
-                    warehouse.boxes.append((next_x, next_y + 1))
-                    y = next_y
-                else:
-                    return failed_sequence  
-            else:
-                y = next_y
-        else:
-            raise ValueError("No action sequence")
-
-    applicable_sequence = 'Yes'
-    print(applicable_sequence)
-
-    warehouse.worker = x, y
-
-    X, Y = zip(*warehouse.walls) 
-    x_size, y_size = 1 + max(X), 1 + max(Y)
-
-    vis = [[" "] * x_size for z in range(y_size)]
-    for (x, y) in warehouse.walls:
-        vis[y][x] = "#"
-    for (x, y) in warehouse.targets:
-        vis[y][x] = "."
-
-    if vis[warehouse.worker[1]][warehouse.worker[0]] == ".":
-        vis[warehouse.worker[1]][warehouse.worker[0]] = "!"
-    else:
-        vis[warehouse.worker[1]][warehouse.worker[0]] = "@"
-
-    for (x, y) in warehouse.boxes:
-        if vis[y][x] == ".": 
-            vis[y][x] = "*"
-        else:
-            vis[y][x] = "$"
-    warehouse = "\n".join(["".join(line) for line in vis])
-
-    print(str(warehouse))
-    return str(warehouse)
+            #Only push one box
+            warehouse.boxes.remove(space_1)
+            warehouse.boxes.append(space_2)
+        
+        warehouse.worker = space_1 
+    
+    return warehouse.__str__() if type(warehouse)!=str else warehouse
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
