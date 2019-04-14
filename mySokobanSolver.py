@@ -3,18 +3,18 @@
 
     2019 CAB320 Sokoban assignment
 
-The functions and classes defined in this module will be called by a marker script. 
+The functions and classes defined in this module will be called by a marker script.
 You should complete the functions and classes according to their specified interfaces.
 
 You are not allowed to change the defined interfaces.
-That is, changing the formal parameters of a function will break the 
+That is, changing the formal parameters of a function will break the
 interface and triggers to a fail for the test of your code.
- 
+
 # by default does not allow push of boxes on taboo cells
-SokobanPuzzle.allow_taboo_push = False 
+SokobanPuzzle.allow_taboo_push = False
 
 # use elementary actions if self.macro == False
-SokobanPuzzle.macro = False 
+SokobanPuzzle.macro = False
 
 '''
 
@@ -37,7 +37,7 @@ def my_team():
     '''
     Return the list of the team members of this assignment submission as a list
     of triplet of the form (student_number, first_name, last_name)
-    
+
     '''
 
     return [(9935924, 'Greyden', 'Scott'), (9935924,'John', 'Santias'), (9935924,'Alex', 'Holm')]
@@ -46,25 +46,25 @@ def my_team():
 
 
 def taboo_cells(warehouse):
-    '''  
-    Identify the taboo cells of a warehouse. A cell inside a warehouse is 
-    called 'taboo' if whenever a box get pushed on such a cell then the puzzle 
-    becomes unsolvable.  
-    When determining the taboo cells, you must ignore all the existing boxes, 
-    simply consider the walls and the target cells.  
+    '''
+    Identify the taboo cells of a warehouse. A cell inside a warehouse is
+    called 'taboo' if whenever a box get pushed on such a cell then the puzzle
+    becomes unsolvable.
+    When determining the taboo cells, you must ignore all the existing boxes,
+    simply consider the walls and the target cells.
     Use only the following two rules to determine the taboo cells;
-     Rule 1: if a cell is a corner inside the warehouse and not a target, 
+     Rule 1: if a cell is a corner inside the warehouse and not a target,
              then it is a taboo cell.
-     Rule 2: all the cells between two corners inside the warehouse along a 
+     Rule 2: all the cells between two corners inside the warehouse along a
              wall are taboo if none of these cells is a target.
-    
+
     @param warehouse: a Warehouse object
 
     @return
-       A string representing the puzzle with only the wall cells marked with 
-       an '#' and the taboo cells marked with an 'X'.  
+       A string representing the puzzle with only the wall cells marked with
+       an '#' and the taboo cells marked with an 'X'.
        The returned string should NOT have marks for the worker, the targets,
-       and the boxes.  
+       and the boxes.
     '''
 
     # Constants
@@ -89,7 +89,7 @@ def taboo_cells(warehouse):
             return (num_ud_walls >= 1) or (num_lr_walls >= 1)
         else:
             return (num_ud_walls >= 1) and (num_lr_walls >= 1)
-        
+
     warehouse_str = str(warehouse)
 
     for char in squares_to_remove:
@@ -126,7 +126,7 @@ def taboo_cells(warehouse):
                         if all([is_corner(warehouse_2d, x3, y, 1) for x3 in range(x + 1, x2 + x + 1)]):
                             for x4 in range(x + 1, x2 + x + 1):
                                 warehouse_2d[y][x4] = 'X'
- 
+
                 for y2 in range(len(col)):
                     if col[y2] in target_squares or col[y2] == wall_square:
                         break
@@ -150,23 +150,23 @@ class SokobanPuzzle(search.Problem):
     An instance contains information about the walls, the targets, the boxes
     and the worker.
 
-    Your implementation should be fully compatible with the search functions of 
-    the provided module 'search.py'. 
-    
+    Your implementation should be fully compatible with the search functions of
+    the provided module 'search.py'.
+
     Each instance should have at least the following attributes
     - self.allow_taboo_push
     - self.macro
-    
-    When self.allow_taboo_push is set to True, the 'actions' function should 
-    return all possible legal moves including those that move a box on a taboo 
+
+    When self.allow_taboo_push is set to True, the 'actions' function should
+    return all possible legal moves including those that move a box on a taboo
     cell. If self.allow_taboo_push is set to False, those moves should not be
     included in the returned list of actions.
-    
-    If self.macro is set True, the 'actions' function should return 
-    macro actions. If self.macro is set False, the 'actions' function should 
+
+    If self.macro is set True, the 'actions' function should return
+    macro actions. If self.macro is set False, the 'actions' function should
     return elementary actions.
     '''
-    
+
     def __init__(self, warehouse):
        self.warehouse = warehouse
        # self.allow_taboo_push = False
@@ -176,7 +176,7 @@ class SokobanPuzzle(search.Problem):
     def actions(self, state):
         """
         Return the list of actions that can be executed in the given state.
-        
+
         As specified in the header comment of this class, the attributes
         'self.allow_taboo_push' and 'self.macro' should be tested to determine
         what type of list of actions is to be returned.
@@ -235,7 +235,7 @@ class SokobanPuzzle(search.Problem):
 
         #Warehouse current state
         the_warehouse = sokoban.Warehouse()
-        
+
         #Positional information of boxes, worker, targets and walls extracted
         the_warehouse.extract_locations(state[1].split(sep="\n"))
 
@@ -258,73 +258,73 @@ class SokobanPuzzle(search.Problem):
 
 def check_action_seq(warehouse, action_seq):
     '''
-    
+
     Determine if the sequence of actions listed in 'action_seq' is legal or not.
-    
+
     Important notes:
       - a legal sequence of actions does not necessarily solve the puzzle.
       - an action is legal even if it pushes a box onto a taboo cell.
-        
+
     @param warehouse: a valid Warehouse object
 
     @param action_seq: a sequence of legal actions.
            For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
-           
+
     @return
         The string 'Failure', if one of the action was not successul.
            For example, if the agent tries to push two boxes at the same time,
                         or push one box into a wall.
-        Otherwise, if all actions were successful, return                 
+        Otherwise, if all actions were successful, return
                A string representing the state of the puzzle after applying
                the sequence of actions.  This must be the same string as the
                string returned by the method  Warehouse.__str__()
     '''
-    
+
     for action in action_seq:
         x, y = warehouse.worker
-        
+
         #Get location of two spaces to  check
         if action == 'Left':
             space_1 = (x - 1, y)
             space_2 = (x - 2, y)
-            
+
         elif action == 'Right':
             space_1 = (x + 1, y)
             space_2 = (x + 2, y)
-        
+
         elif action == 'Up':
             space_1 = (x, y - 1)
             space_2 = (x, y - 2)
-        
+
         elif action == 'Down':
             space_1 = (x, y + 1)
-            space_2 = (x, y + 2)            
-        
+            space_2 = (x, y + 2)
+
         #Check if the player has pushed walls
         if space_1 in warehouse.walls:
             return 'Failure'
-        
+
         if space_1 in warehouse.boxes:
             if space_2 in warehouse.boxes or space_2 in warehouse.walls:
                 #push two boxes or the box is already nearby the wall
                 return 'Failure'
-            
+
             #Only push one box
             warehouse.boxes.remove(space_1)
             warehouse.boxes.append(space_2)
-        
-        warehouse.worker = space_1 
-    
+
+        warehouse.worker = space_1
+
     return warehouse.__str__() if type(warehouse)!=str else warehouse
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def solve_sokoban_elem(warehouse):
-    '''    
-    This function should solve using elementary actions 
+    '''
+    This function should solve using elementary actions
     the puzzle defined in a file.
-    
+
     @param warehouse: a valid Warehouse object
 
     @return
@@ -334,19 +334,16 @@ def solve_sokoban_elem(warehouse):
             For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
             If the puzzle is already in a goal state, simply return []
     '''
-    
-    macro_actions = solve_soboban_macro(warehouse)
-    #need to complete solve_sokoban_macro function to complete this
-    
-    raise NotImplementedError()
+
+        raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def can_go_there(warehouse, dst):
-    '''    
-    Determine whether the worker can walk to the cell dst=(row,column) 
+    '''
+    Determine whether the worker can walk to the cell dst=(row,column)
     without pushing any box.
-    
+
     @param warehouse: a valid Warehouse object
 
     @return
@@ -363,27 +360,27 @@ def can_go_there(warehouse, dst):
           The heuristic distance sqrt(((x_worker - x_destination) ^2) + ((y_worker - y_destination) ^ 2))
 
         '''
-        return math.sqrt(((n.state[0] - dst[0]) ** 2) + ((n.state[1] - dst[1]) ** 2)) 
+        return math.sqrt(((n.state[0] - dst[0]) ** 2) + ((n.state[1] - dst[1]) ** 2))
 
     # A* graph search used on the NextPath search
     node = astar_graph_search(PathScanner(warehouse.worker, warehouse, (dst[1], dst[0])), heuristic)
 
     # If found a node, return True otherwise False
     return True if node is not None else False
-    
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def solve_sokoban_macro(warehouse):
-    '''    
+    '''
     Solve using macro actions the puzzle defined in the warehouse passed as
-    a parameter. A sequence of macro actions should be 
+    a parameter. A sequence of macro actions should be
     represented by a list M of the form
             [ ((r1,c1), a1), ((r2,c2), a2), ..., ((rn,cn), an) ]
-    For example M = [ ((3,4),'Left') , ((5,2),'Up'), ((12,4),'Down') ] 
+    For example M = [ ((3,4),'Left') , ((5,2),'Up'), ((12,4),'Down') ]
     means that the worker first goes the box at row 3 and column 4 and pushes it left,
     then goes to the box at row 5 and column 2 and pushes it up, and finally
     goes the box at row 12 and column 4 and pushes it down.
-    
+
     @param warehouse: a valid Warehouse object
 
     @return
@@ -391,7 +388,7 @@ def solve_sokoban_macro(warehouse):
         Otherwise return M a sequence of macro actions that solves the puzzle.
         If the puzzle is already in a goal state, simply return []
     '''
-    
+
     #Need to complete sokoban puzzle to complete this function
 
     #$ is the box, . is the target
@@ -403,13 +400,52 @@ def solve_sokoban_macro(warehouse):
     #######
     #@   *#
     #######
+    warehouse_str = str(warehouse)
+    goal = warehouse_string.replace("$", " ").replace(".", "*")
 
-   # raise NotImplementedError()
+    def h(n):
+        state = n.state[1]
+        warehouse = sokoban.Wharehouse()
+        warehouse.extract_locations(state.split('\n'))
+        num_targets = len(warehouse.targets)
+        heuristic = 0
+        test = 1
+        for box in wh.boxes:
+            if test == 1:
+                dist = 0
+                for target in wh.targets:
+                    dist += manhattan_distance(box, target)
+                heuristic += 0.8 * (dist / num_targets) + 0.5 * manhattan_distance(warehouse.worker, box)
+            else:
+                dist1 = []
+                for target in wh.targets:
+                    dist1.append(manhattan_distance(box, target))
+                heuristic += 0.8 * min(dist1) + 0.5 * manhattan_distance(warehouse.worker, box)
+        return heuristic
+
+        solution = search.best_first_graph_search(SokobanPuzzle(warehouse_str, goal),h)
+
+        if solution is None:
+            return ['Impossible']
+
+        macro_actions = solution.path()
+
+        macro_actions = [e.action for e in macro_actions]
+
+        check_state = solution.path()
+        check_state = [b.state for b in check_state]
+
+        if '$' not in str(check_state[0]):
+
+            return []
+        else:
+            return macro_actions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# - - - - -  - - - - - - - Other classess and functions - - - - - - - - - - - - 
+# - - - - -  - - - - - - - Other classess and functions - - - - - - - - - - - -
 class PathScanner(search.Problem):
+
     def __init__(self, initial, warehouse, goal=None):
         '''
         Assign the passed values
@@ -427,7 +463,7 @@ class PathScanner(search.Problem):
         '''
         Apply the next move to the current state
 
-        @param 
+        @param
             state: the current state
             nextMove: the worker's next move
 
@@ -453,7 +489,7 @@ class PathScanner(search.Problem):
                 yield worker_offset
 
 # Worker's offsets (left, right, up and down) from its current position
-worker_offsets = {'left':(-1, 0), 'right':(1, 0), 'up':(0, -1), 'down':(0, 1) } 
+worker_offsets = {'left':(-1, 0), 'right':(1, 0), 'up':(0, -1), 'down':(0, 1) }
 
 def get_coordinates(warehouse):
     #Seperated characters appended to list
@@ -491,29 +527,29 @@ def flip_coordinates(c):
     return c[1], c[0]
 
 def add_coordinates(c1, c2):
-    return c1[0] + c2[0], c1[1] + c2[1]  
+    return c1[0] + c2[0], c1[1] + c2[1]
 
 def offset_of_direction(direction):
-        if offset == "Up": 
+        if offset == "Up":
             return (0, -1)
-        elif offset == "Down": 
+        elif offset == "Down":
             return (0, 1)
-        elif offset == "Left": 
+        elif offset == "Left":
             return (-1, 0)
-        elif offset == "Right": 
+        elif offset == "Right":
             return (1, 0)
         else:
-            raise ValueError("Invalid direction")  
+            raise ValueError("Invalid direction")
 
 
 def direction_of_offset(offset):
-        if offset == (0, -1): 
+        if offset == (0, -1):
             return "Up"
-        elif offset == (0, 1): 
+        elif offset == (0, 1):
             return "Down"
-        elif offset == (-1, 0): 
+        elif offset == (-1, 0):
             return "Left"
-        elif offset == (1, 0): 
+        elif offset == (1, 0):
             return "Right"
         else:
             raise ValueError("Invalid offset")
