@@ -8,7 +8,7 @@ This module defines utility functions and classes for a sokoban assignment.
 
 The main class is the Wareshouse class.
 An instance of this class can read a text file coding a Sokoban puzzle,
-and  store information about the positions of the walls, boxes and targets 
+and  store information about the positions of the walls, boxes and targets
 list. See the header comment of the Warehouse class for details
 
 
@@ -61,15 +61,15 @@ class Warehouse:
     The attributes 'self.boxes', 'self.targets' and 'self.walls'
     are lists of (x,y) coordinates.
     The attribute 'self.worker' is a tuple (x,y)
-    The origin is at the top left. 
+    The origin is at the top left.
     The horizontal axis 'x' is pointing right.
     The vertical axis 'y' is pointing down.
     '''
     def copy(self, worker = None, boxes = None):
         '''
-        Return a clone of this warehouse. 
-        Possibly with new positions for the worker and the boxes 
-        if the values of these parameters are not 'None'.  
+        Return a clone of this warehouse.
+        Possibly with new positions for the worker and the boxes
+        if the values of these parameters are not 'None'.
         Targets and Walls are copied (shallow copy)
         @param
             worker : a (x,y) tuple, position of the agent
@@ -87,14 +87,16 @@ class Warehouse:
         Load the description of a warehouse stored in a text file.
         '''
         with open(filePath, 'r') as f:
-            # 'lines' is a list of strings (rows of the puzzle) 
-            lines = f.readlines() 
+            # 'lines' is a list of strings (rows of the puzzle)
+            lines = f.readlines()
+        self.extract_locations(lines)
+
         # Put the warehouse in a canonical format
         # where row 0 and column 0 have both at least one brick.
         first_row_brick, first_column_brick = None, None
         for row, line in enumerate(lines):
             brick_column = line.find('#')
-            if brick_column>=0: 
+            if brick_column>=0:
                 if not first_row_brick:
                     first_row_brick = row # found first row with a brick
                 if not first_column_brick:
@@ -106,7 +108,7 @@ class Warehouse:
         # compute the canonical representation
         canonical_lines = [line[first_column_brick:] for line in lines[first_row_brick:]]
         self.extract_locations(canonical_lines)
-    
+
     def save_warehouse(self, filePath):
         with open(filePath, 'w') as f:
             f.write(self.__str__())
@@ -121,7 +123,7 @@ class Warehouse:
         workers =  list(find_2D_iterator(lines, "@"))  # workers on a free cell
         workers_on_a_target = list(find_2D_iterator(lines, "!"))
         # Check that we have exactly one agent
-        assert len(workers)+len(workers_on_a_target) == 1 
+        assert len(workers)+len(workers_on_a_target) == 1
         if len(workers) == 1:
             self.worker = workers[0]
         self.boxes = list(find_2D_iterator(lines, "$")) # crate/box
@@ -131,7 +133,7 @@ class Warehouse:
         self.targets += targets_with_boxes
         if len(workers_on_a_target) == 1:
             self.worker = workers_on_a_target[0]
-            self.targets.append(self.worker) 
+            self.targets.append(self.worker)
         self.walls = list(find_2D_iterator(lines, "#")) # set(find_2D_iterator(lines, "#"))
         assert len(self.boxes) == len(self.targets)
 
@@ -143,7 +145,7 @@ class Warehouse:
         ##        y_size = 1+max(y for x,y in self.walls)
         X,Y = zip(*self.walls) # pythonic version of the above
         x_size, y_size = 1+max(X), 1+max(Y)
-        
+
         vis = [[" "] * x_size for y in range(y_size)]
         for (x,y) in self.walls:
             vis[y][x] = "#"
@@ -170,7 +172,7 @@ class Warehouse:
 
     def __hash__(self):
         return hash(self.worker) ^ functools.reduce(operator.xor, [hash(box) for box in self.boxes])
-    
+
 if __name__ == "__main__":
     wh = Warehouse()
     wh.load_warehouse("./warehouses/warehouse_03.txt")
@@ -179,8 +181,6 @@ if __name__ == "__main__":
     print(wh)   # this calls    wh.__str__()
 
 
-# + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
+# + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 #                              CODE CEMETARY
 # + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
-
-

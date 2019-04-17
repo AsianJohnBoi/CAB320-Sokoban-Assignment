@@ -40,7 +40,7 @@ def my_team():
 
     '''
 
-    return [(9935924, 'Greyden', 'Scott'), (9935924,'John', 'Santias'), (9935924,'Alex', 'Holm')]
+    return [(9935924, 'Greyden', 'Scott'), (9935924,'John', 'Santias'), (9918205,'Alex', 'Holm')]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -167,10 +167,11 @@ class SokobanPuzzle(search.Problem):
     return elementary actions.
     '''
 
-    def __init__(self, warehouse):
-       self.warehouse = warehouse
-       # self.allow_taboo_push = False
-       # self.macro = False
+    def __init__(self, initial, goal):
+        self.initial = (((-1,-1), "None"), initial)
+        self.goal = goal.replace("@", " ")
+        self.allow_taboo_push = True
+        self.macro = True
 
 
     def actions(self, state):
@@ -184,62 +185,57 @@ class SokobanPuzzle(search.Problem):
 
         #Warehouse current state
         the_warehouse = sokoban.Warehouse()
-
         #Positional information of boxes, worker, targets and walls extracted
         the_warehouse.extract_locations(state[1].split(sep="\n"))
-
         #If allow_taboo_push is True, return all legal moves including the box on a taboo cell
-        if allow_taboo_push:
-
+        if self.allow_taboo_push:
             #Find bad cell spots
             is_cell_taboo = set(find_2D_iterator(taboo_cells(the_warehouse), "X"))
-
-
             #find directions for the box
             for box in the_warehouse.boxes:
                 for offset in worker_offsets:
+                    offset = offset_of_direction(offset)
                     b_position = add_coordinates(box, offset)
-                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
-
-                    if can_go_there(the_warehouse, p_position) and b_position not in is_cell_taboo \
-                        and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls:
-                            yield(box, direction_of_offset(offset))
+                    ppos1 = (box[0] + offset[0] * -1)
+                    ppos0 = (box[1] + offset[1] * -1)
+                    p_position = (ppos1, ppos0)
+                    p_position = flip_coordinates(p_position)
+                    if can_go_there(the_warehouse, p_position):
+                        if b_position not in is_cell_taboo:
+                            if b_position not in the_warehouse.boxes:
+                                if b_position not in the_warehouse.walls:
+                                    yield(box, direction_of_offset(offset))
 
         #if allow_taboo_push is False, taboo and shouldn't be included in list of moves.
-        elif not allow_taboo_push:
-
+        elif not self.allow_taboo_push:
             #find directions for the box
             for box in the_warehouse.boxes:
                 for offset in worker_offsets:
                     b_position = add_coordinates(box, offset)
-                    p_position = flip_coordinates((box[0] + offset[0] * -1), box[1] + offset[1] * -1)
-
-                    if can_go_there(the_warehouse, p_position) \
-                        and b_position not in the_warehouse.boxes and b_position not in the_warehouse.walls:
-                            yield(box, direction_of_offset(offset))
+                    p_position = flip_coordinates((box[0] + offset[0] * -1), (box[1] + offset[1] * -1))
+                    if can_go_there(the_warehouse, p_position):
+                        if b_position not in the_warehouse.boxes:
+                            if b_position not in the_warehouse.walls:
+                                yield(box, direction_of_offset(offset))
 
         #if macro is true return macro actions
-        if macro:
-            raise NotImplementedError
+        #if self.macro:
+        #    return
 
         # if macro is false use elementary actions
-        elif not macro:
-            raise NotImplementedError
+        #elif not self.macro:
+        #    raise NotImplementedError
 
-        raise NotImplementedError
+        #raise NotImplementedError
 
     def result(self, state, move):
         '''
         Move is the direction of the object moved by the worker
         '''
-
         #Warehouse current state
         the_warehouse = sokoban.Warehouse()
-
         #Positional information of boxes, worker, targets and walls extracted
         the_warehouse.extract_locations(state[1].split(sep="\n"))
-
-
         #remove the box from its old position, set it to the character's offset direction
         #set the boxes' old position to the worker
         position = move[0]
@@ -250,7 +246,7 @@ class SokobanPuzzle(search.Problem):
             the_warehouse.boxes.remove(position)
             offset_position = offset_of_direction(move[1])
             the_warehouse.boxes.append(add_coordinates(position, offset_position))
-            return str(the_warehouse)
+            return move, str(the_warehouse)
         else:
             raise ValueError("Box is outside the Warehouse")
 
@@ -335,7 +331,8 @@ def solve_sokoban_elem(warehouse):
             If the puzzle is already in a goal state, simply return []
     '''
 
-        raise NotImplementedError()
+
+        #raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -350,6 +347,11 @@ def can_go_there(warehouse, dst):
       True if the worker can walk to cell dst=(row,column) without pushing any box
       False otherwise
     '''
+    dsta = (str(dst[0]), str(dst[1]))
+    dst0 = dsta[0].replace(",","").replace("(","").replace(")","")
+    dst1 = dsta[1].replace(",","").replace("(","").replace(")","")
+    dst0 = int(dst0)
+    dst1 = int(dst1)
     def heuristic(n):
         '''
         Determine the heuristic distance between the worker and the destination
@@ -360,13 +362,30 @@ def can_go_there(warehouse, dst):
           The heuristic distance sqrt(((x_worker - x_destination) ^2) + ((y_worker - y_destination) ^ 2))
 
         '''
-        return math.sqrt(((n.state[0] - dst[0]) ** 2) + ((n.state[1] - dst[1]) ** 2))
+        state = n.state
 
-    # A* graph search used on the NextPath search
-    node = astar_graph_search(PathScanner(warehouse.worker, warehouse, (dst[1], dst[0])), heuristic)
+        dsta = (str(dst[0]), str(dst[1]))
+        dst0 = dsta[0].replace(",","").replace("(","").replace(")","")
+        dst1 = dsta[1].replace(",","").replace("(","").replace(")","")
+        dst0 = int(dst0)
+        dst1 = int(dst1)
 
-    # If found a node, return True otherwise False
-    return True if node is not None else False
+        # distance = sqrt(xdiff^2 + ydiff^2). Basic distance formula heuristic.
+        return math.sqrt(((state[1] - dst1) ** 2)
+                         + ((state[0] - dst0) ** 2))
+
+    dst = (dst1, dst0)  # Destination is given in (row,col), not (x,y)
+
+    # Use an A* graph search on the FindPathProblem search
+
+    node = astar_graph_search(PathScanner(warehouse.worker, warehouse, dst), heuristic)
+    print("NODE: ", node)
+
+    # If a node was found, this is a valid destination
+    if node is not None:
+        return True
+    else:
+        return False
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -401,52 +420,46 @@ def solve_sokoban_macro(warehouse):
     #@   *#
     #######
     warehouse_str = str(warehouse)
-    goal = warehouse_string.replace("$", " ").replace(".", "*")
+    goal = warehouse_str.replace("$", " ")
+    goal = goal.replace(".", "*")
 
     def h(n):
         state = n.state[1]
-        warehouse = sokoban.Wharehouse()
-        warehouse.extract_locations(state.split('\n'))
-        num_targets = len(warehouse.targets)
+        whouse = sokoban.Warehouse()
+        whouse.extract_locations(state.split('\n'))
+        target_count = len(whouse.targets)
         heuristic = 0
         test = 1
-        for box in wh.boxes:
-            if test == 1:
-                dist = 0
-                for target in wh.targets:
-                    dist += manhattan_distance(box, target)
-                heuristic += 0.8 * (dist / num_targets) + 0.5 * manhattan_distance(warehouse.worker, box)
-            else:
-                dist1 = []
-                for target in wh.targets:
-                    dist1.append(manhattan_distance(box, target))
-                heuristic += 0.8 * min(dist1) + 0.5 * manhattan_distance(warehouse.worker, box)
+        for box in whouse.boxes:
+            dist = 0
+            for target in whouse.targets:
+                dist += manhattan_distance(box, target)
+            heuristic += 0.8 * (dist / target_count) + 0.5 * manhattan_distance(warehouse.worker, box)
         return heuristic
 
-        solution = search.best_first_graph_search(SokobanPuzzle(warehouse_str, goal),h)
+    M = search.best_first_graph_search(SokobanPuzzle(warehouse_str, goal), h)
 
-        if solution is None:
-            return ['Impossible']
 
-        macro_actions = solution.path()
+    if M is None:
+        return ['Impossible']
 
-        macro_actions = [e.action for e in macro_actions]
+    macro_actions = M.path()
+    macro_actions = [e.action for e in macro_actions]
 
-        check_state = solution.path()
-        check_state = [b.state for b in check_state]
+    check_state = M.path()
+    check_state = [b.state for b in check_state]
 
-        if '$' not in str(check_state[0]):
-
-            return []
-        else:
-            return macro_actions
+    if '$' not in str(check_state[0]):
+        return macro_actions
+    else:
+        return macro_actions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # - - - - -  - - - - - - - Other classess and functions - - - - - - - - - - - -
 class PathScanner(search.Problem):
 
-    def __init__(self, initial, warehouse, goal=None):
+    def __init__(self, initial, warehouse, goal):
         '''
         Assign the passed values
 
@@ -456,8 +469,8 @@ class PathScanner(search.Problem):
             goal: the destination
         '''
         self.initial = initial
-        self.warehouse = warehouse
         self.goal = goal
+        self.warehouse = warehouse
 
     def result(self, state, nextMove):
         '''
@@ -470,7 +483,7 @@ class PathScanner(search.Problem):
         @return
             the next state
         '''
-        nextState = state[0] + nextMove[0], state[1] + nextMove[1]
+        nextState = add_coordinates(state, nextMove)
         return nextState
 
     def actions(self, state):
@@ -484,7 +497,7 @@ class PathScanner(search.Problem):
             the next possible position that isn't a wall or a box
         '''
         for worker_offset in worker_offsets.values():
-            nextState = state[0] + worker_offset[0], state[1] + worker_offset[1]
+            nextState = add_coordinates(state, worker_offset)
             if nextState not in self.warehouse.walls and nextState not in self.warehouse.boxes:
                 yield worker_offset
 
@@ -520,23 +533,25 @@ def get_coordinates(warehouse):
             yield l[i:i+n]
 
     theCoordinates = (list(chunks(data, count)))
-    print(theCoordinates)
 
+def manhattan_distance(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 def flip_coordinates(c):
-    return c[1], c[0]
+    return (c[1], c[0])
 
 def add_coordinates(c1, c2):
-    return c1[0] + c2[0], c1[1] + c2[1]
+    c = (c1[0] + c2[0], c1[1] + c2[1])
+    return c
 
-def offset_of_direction(direction):
-        if offset == "Up":
+def offset_of_direction(offset):
+        if offset == "up":
             return (0, -1)
-        elif offset == "Down":
+        elif offset == "down":
             return (0, 1)
-        elif offset == "Left":
+        elif offset == "left":
             return (-1, 0)
-        elif offset == "Right":
+        elif offset == "right":
             return (1, 0)
         else:
             raise ValueError("Invalid direction")
@@ -544,12 +559,12 @@ def offset_of_direction(direction):
 
 def direction_of_offset(offset):
         if offset == (0, -1):
-            return "Up"
+            return "up"
         elif offset == (0, 1):
-            return "Down"
+            return "down"
         elif offset == (-1, 0):
-            return "Left"
+            return "left"
         elif offset == (1, 0):
-            return "Right"
+            return "right"
         else:
             raise ValueError("Invalid offset")

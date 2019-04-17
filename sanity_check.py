@@ -15,19 +15,19 @@ Make sure that your code runs without errors with this script.
 from sokoban import Warehouse
 
 from mySokobanSolver import my_team, taboo_cells, SokobanPuzzle, check_action_seq
-from mySokobanSolver import solve_sokoban_elem, can_go_there, solve_sokoban_macro 
+from mySokobanSolver import solve_sokoban_elem, can_go_there, solve_sokoban_macro
 
 #from fredSokobanSolver import my_team, taboo_cells, SokobanPuzzle, check_action_seq
-#from fredSokobanSolver import solve_sokoban_elem, can_go_there, solve_sokoban_macro 
+#from fredSokobanSolver import solve_sokoban_elem, can_go_there, solve_sokoban_macro
 
 
-    
+
 def test_taboo_cells():
     wh = Warehouse()
     wh.load_warehouse("./warehouses/warehouse_01.txt")
     expected_answer = '####  \n#X #  \n#  ###\n#   X#\n#   X#\n#XX###\n####  '
     answer = taboo_cells(wh)
-    fcn = test_taboo_cells    
+    fcn = test_taboo_cells
     print('<<  Testing {} >>'.format(fcn.__name__))
     if answer==expected_answer:
         print(fcn.__name__, ' passed!  :-)\n')
@@ -35,7 +35,7 @@ def test_taboo_cells():
         print(fcn.__name__, ' failed!  :-(\n')
         print('Expected ');print(expected_answer)
         print('But, received ');print(answer)
-        
+
 
 
 def test_check_elem_action_seq():
@@ -44,7 +44,7 @@ def test_check_elem_action_seq():
     # first test
     answer = check_action_seq(wh, ['Right', 'Right','Down'])
     expected_answer = '####  \n# .#  \n#  ###\n#*   #\n#  $@#\n#  ###\n####  '
-    fcn = test_check_elem_action_seq    
+    fcn = test_check_elem_action_seq
     print('<<  First test of {} >>'.format(fcn.__name__))
     if answer==expected_answer:
         print(fcn.__name__, ' passed!  :-)\n')
@@ -55,7 +55,7 @@ def test_check_elem_action_seq():
     # second test
     answer = check_action_seq(wh, ['Right', 'Right','Right'])
     expected_answer = 'Failure'
-    fcn = test_check_elem_action_seq    
+    fcn = test_check_elem_action_seq
     print('<<  Second test of {} >>'.format(fcn.__name__))
     if answer==expected_answer:
         print(fcn.__name__, ' passed!  :-)\n')
@@ -68,7 +68,7 @@ def test_check_elem_action_seq():
 
 def test_solve_sokoban_elem():
     puzzle_t1 ='#######\n#@ $. #\n#######'
-    wh = Warehouse()    
+    wh = Warehouse()
     wh.extract_locations(puzzle_t1.split(sep='\n'))
     # first test
     answer = solve_sokoban_elem(wh)
@@ -83,7 +83,7 @@ def test_solve_sokoban_elem():
         print('But, received ');print(answer)
     # second test
     puzzle_t2 ='#######\n#@ $ #.#\n#######'
-    wh = Warehouse()    
+    wh = Warehouse()
     wh.extract_locations(puzzle_t2.split(sep='\n'))
     # second test
     answer = solve_sokoban_elem(wh)
@@ -95,11 +95,11 @@ def test_solve_sokoban_elem():
         print(fcn.__name__, ' failed!  :-(\n')
         print('Expected ');print(expected_answer)
         print('But, received ');print(answer)
-        
+
 
 def test_can_go_there():
     puzzle_t1 ='#######\n#@ $. #\n#######'
-    wh = Warehouse()    
+    wh = Warehouse()
     wh.extract_locations(puzzle_t1.split(sep='\n'))
     #first test
     answer = can_go_there(wh,(1,2))
@@ -126,7 +126,7 @@ def test_can_go_there():
 
 def test_solve_sokoban_macro():
     puzzle_t2 ='#######\n#@ $ .#\n#######'
-    wh = Warehouse()    
+    wh = Warehouse()
     wh.extract_locations(puzzle_t2.split(sep='\n'))
     # first test
     answer=solve_sokoban_macro(wh)
@@ -140,14 +140,14 @@ def test_solve_sokoban_macro():
         print('Expected ');print(expected_answer)
         print('But, received ');print(answer)
 
-    
+
 
 if __name__ == "__main__":
-    pass   
-#    print(my_team())  # should print your team
+    pass
+    print(my_team())  # should print your team
 
-    test_taboo_cells() 
+    test_taboo_cells()
     test_check_elem_action_seq()
-#    test_solve_sokoban_elem()
+    #test_solve_sokoban_elem()
     test_can_go_there()
-#    test_solve_sokoban_macro()   
+    test_solve_sokoban_macro()

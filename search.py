@@ -4,17 +4,17 @@
     2019 MASTER COPY
 
         Generic search module for Python 3.5+
-        
+
 This search module is loosely based on the AIMA book.
 Search (Chapters 3-4)
 
-The way to use this code is to subclass the class 'Problem' to create 
-your own class of problems,  then create problem instances and solve them with 
+The way to use this code is to subclass the class 'Problem' to create
+your own class of problems,  then create problem instances and solve them with
 calls to the various search functions.
 
 Last modified 2019-03-10
 by f.maire@qut.edu.au
-- Changed PriorityQueue 
+- Changed PriorityQueue
 
 
 """
@@ -108,7 +108,7 @@ class PriorityQueue(Queue):
         self.counter = itertools.count() # unique sequence count
         # counter_value is used to break ties between items that
         # have the same 'f' value
-        
+
     def append(self, item):
         # thw pair  (f(item), counter_value, item)  is pushed on the internal heapq
         heapq.heappush(self.heap, (self.f(item),next(self.counter),  item))
@@ -117,21 +117,21 @@ class PriorityQueue(Queue):
         """Insert each item in items at its correct position."""
         for item in items:
             self.append(item)
-                
+
     def __len__(self):
         return len(self.heap)
-    
+
     def __str__(self):
         return str(self.heap)
-    
+
     def pop(self):
         """Pop and return the item with min f(x) value """
         if self.heap:
-            # item is the last element of the tuple  (f(item), counter_value, item) 
+            # item is the last element of the tuple  (f(item), counter_value, item)
             return heapq.heappop(self.heap)[-1]
         else:
             raise Exception('Trying to pop from empty PriorityQueue.')
-    
+
     def __contains__(self, item):
         """Return True if item in PriorityQueue."""
         return (self.f(item), item) in self.heap
@@ -142,7 +142,7 @@ class PriorityQueue(Queue):
             # equal if their corresponding states are the same.
             if item == key:
                 return item
-            
+
     def __delitem__(self, key):
         for f_value,count_value,item in self.heap:
             if item == key:
@@ -229,7 +229,7 @@ class Node:
         next_state = problem.result(self.state, action)
         return Node(next_state, # next_state is a state
                     self, # parent is a node
-                    action, # from this state to next state 
+                    action, # from this state to next state
                     problem.path_cost(self.path_cost, self.state, action, next_state)
                     )
 
@@ -320,7 +320,7 @@ def breadth_first_graph_search(problem):
     "Graph search version of BFS.  [Fig. 3.11]"
     return graph_search(problem, FIFOQueue())
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def best_first_tree_search(problem, f):
     """
@@ -436,7 +436,6 @@ def astar_tree_search(problem, h=None):
 #______________________________________________________________________________
 #
 
-# + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
+# + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 #                              CODE CEMETARY
-# + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + 
-
+# + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
