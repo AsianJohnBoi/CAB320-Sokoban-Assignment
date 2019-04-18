@@ -425,69 +425,78 @@ def workable_cells(warehouse):
                 frontier.add(neighbour_cell)
     return explored_cells
 
+#new definition
+def taboo_cells_corner(warehouse, workableCells):
+    taboo_cells = set([cell for cell in workableCells
+    if((neighouring_cells(cell)['up'] in warehouse.walls or neighouring_cells(cell)['down'] in warehouse.walls) and
+        (neighouring_cells(cell)['left'] in warehouse.walls or neighouring_cells(cell)['right'] in warehouse.walls))])
+    return taboo_cells
+
 def deadlock_cells(warehouse):
 
-    valid_cells = workable_cells(warehouse)
+    free_cells = workable_cells(warehouse)
 
     #Remove all of target cells, which do need to be consider deadlock case
-    for target_cell in warehouse.targets:
-        valid_cells.discard(target_cell)
+    for target in warehouse.targets:
+        free_cells.discard(target)
     
     #Get the corner deadlock
-    deadlocks = set([cell for cell in valid_cells
-        if((neighouring_cells(cell)['up'] in warehouse.walls or 
-            neighouring_cells(cell)['down'] in warehouse.walls) and
-            (neighouring_cells(cell)['left'] in warehouse.walls or 
-             neighouring_cells(cell)['right'] in warehouse.walls))])
+    corner_deadlocks = taboo_cells_corner(warehouse, free_cells)
     
     # Get the deadlock along the walls
     deadlock_alongWall = set()
-    for cell1, cell2 in itertools.combinations(deadlocks, 2): 
-        x1, y1 = cell1[0], cell1[1]
-        x2, y2 = cell2[0], cell2[1]
+
+    final_deadlocks = itertools.combinations(corner_deadlocks, 2)
+    for cell_a, cell_b in final_deadlocks: 
+        wallOrTarget = False
+        x1, y1 = cell_a[0], cell_a[1]
+        x2, y2 = cell_b[0], cell_b[1]
         if x1 == x2:
-            if y1>y2:
-                y1, y2 = y2, y1
             ## check whether there is a target or wall between them
-            TargetOrWallsBetweenThem = False
-            for y in range(y1+1,y2):
-                if (x1,y) in warehouse.targets or (x1,y) in warehouse.walls:
-                    TargetOrWallsBetweenThem = True
+            for y in range(y1 + 1, y2):
+                if (x1, y) in warehouse.walls or (x1, y) in warehouse.targets:
+                    wallOrTarget = True
                     break
-            if TargetOrWallsBetweenThem:
+            if y1 > y2:
+                y1, y2 = y2, y1
+            if wallOrTarget:
                 continue
             
             ##check whether they are along the wall 
-            alongWall_left = not False in [False for y in range(y1, y2+1) if (x1-1, y) not in warehouse.walls]
-            alongWall_right = not False in [False for y in range(y1, y2+1) if (x1+1, y) not in warehouse.walls]
+            up = [False for x in range(x1, x2+1) if (x1+1, y-1) not in warehouse.walls]
+            down = [False for x in range(x1, x2+1) if (x1, y+1) not in warehouse.walls]
+            wallIsAbove = not False in up
+            wallIsBelow = not False in down
 
             # append all deadlock cells along the wall into set
             if alongWall_left or alongWall_right:
                 deadlock_alongWall |=  set([(x1, y) for y in range(y1+1, y2)])
         
         if y1 == y2:
+            ## check whether there is target between them
+            for x in range(x1+1,x2):
+                if (x,y1) in warehouse.walls or (x,y1) in warehouse.targets:
+                    wallOrTarget = True
+                    break
             if x1 > x2:
                 x1, x2 = x2, x1
-            ## check whether there is target between them
-            TargetOrWallsBetweenThem = False
-            for x in range(x1+1,x2):
-                if (x,y1) in warehouse.targets or (x,y1) in warehouse.walls:
-                    TargetOrWallsBetweenThem = True
-                    break
-            if TargetOrWallsBetweenThem:
+            if wallOrTarget:
                 continue
             
             ##check whether they are along the wall                            
-            alongWall_top = not False in [False for x in range(x1, x2+1) if (x+1, y1-1) not in warehouse.walls]
-            alongWall_bottom = not False in [False for x in range(x1, x2+1) if (x, y1+1) not in warehouse.walls]
+            up = [False for x in range(x1, x2+1) if (x1+1, y-1) not in warehouse.walls]
+            down = [False for x in range(x1, x2+1) if (x1, y+1) not in warehouse.walls]
+            wallIsAbove = not False in up
+            wallIsBelow = not False in down
+            
             # append all deadlock cells along the wall into set
             if alongWall_top or alongWall_bottom:
                 deadlock_alongWall |= set([(x,y1) for x in range(x1+1, x2)])      
     
     # Merge all of deadlock to the single set
-    deadlocks |= deadlock_alongWall
+    corner_deadlocks |= deadlock_alongWall
 
-    return deadlocks    
+    return corner_deadlocks    
 
 #new definition
 def action_direction(action):
