@@ -594,7 +594,7 @@ class SearchMacroActions(search.Problem):
             #check any box can move to neighbour cell
             boxes_can_push_temp = set(warehouse.boxes) & set(neighouring_cells(workableCell).values())
             #check if worker can reach the cell and the box nearby the cell can be pushed
-            if can_go_there(warehouse, ((workableCell[1], workableCell[0])) and boxes_can_push_temp != set()):
+            if can_go_there(warehouse, (workableCell[1], workableCell[0])) and boxes_can_push_temp != set():
                 # worker can go to this cell which is nearby one box
                 for temp_box in boxes_can_push_temp:
                     #check each possible pushable boxes nearby the worker
