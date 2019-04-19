@@ -81,7 +81,7 @@ def test_solve_sokoban_elem():
         print(fcn.__name__, ' failed!  :-(\n')
         print('Expected ');print(expected_answer)
         print('But, received ');print(answer)
-    # second test
+    #second test
     puzzle_t2 ='#######\n#@ $ #.#\n#######'
     wh = Warehouse()
     wh.extract_locations(puzzle_t2.split(sep='\n'))
@@ -125,7 +125,7 @@ def test_can_go_there():
 
 
 def test_solve_sokoban_macro():
-    puzzle_t2 ='#######\n#@ $ .#\n#######'
+    puzzle_t2 ='#######\n#@ $. #\n#######'
     wh = Warehouse()
     wh.extract_locations(puzzle_t2.split(sep='\n'))
     # first test
@@ -146,8 +146,8 @@ if __name__ == "__main__":
     pass
     #print(my_team())  # should print your team
 
-    #test_taboo_cells()
-    #test_check_elem_action_seq()
+    test_taboo_cells()
+    test_check_elem_action_seq()
     test_solve_sokoban_elem()
-    #test_can_go_there()
-    #test_solve_sokoban_macro()
+    test_can_go_there()
+    test_solve_sokoban_macro()

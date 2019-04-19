@@ -27,6 +27,7 @@ import math
 
 from search import *
 from sokoban import find_2D_iterator
+from sokoban import Warehouse
 
 
 
@@ -369,7 +370,17 @@ def solve_sokoban_elem(warehouse):
             If the puzzle is already in a goal state, simply return []
     '''
     
+    path = []
+    macro_actions = solve_sokoban_macro(warehouse)
     
+    if macro_actions == ['Impossible'] or len(macro_actions) == 0:
+        return macro_actions
+    
+    print(macro_actions)
+    for action in macro_actions:
+        path.append(action[1])
+
+    return path
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def can_go_there(warehouse, dst):
@@ -388,6 +399,7 @@ def can_go_there(warehouse, dst):
     dst1 = dsta[1].replace(",","").replace("(","").replace(")","")
     dst0 = int(dst0)
     dst1 = int(dst1)
+    
     def heuristic(n):
         '''
         Determine the heuristic distance between the worker and the destination
@@ -434,9 +446,10 @@ def solve_sokoban_macro(warehouse):
 
     #use A* graph search to move the box to the goal
     macroSolution = search.astar_graph_search(macroActions)
+    print(macroSolution)
     
     final_macro_actions = macroActions.solution(macroSolution)
-    
+    #print(final_macro_actions)
     return final_macro_actions
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -598,10 +611,23 @@ class SearchMacroActions(search.Problem):
         for node in path:
             if node is not None:
                 solution.append(node.action)
+    
+        #remove all None values in list
+        solution.remove(None)
+
+        #print("solution is ", solution)
+        final_solution.append(( (solution[0][0][1], solution[0][0][0]), solution[0][1]))
         
         for action in solution:
             if action is not None:
-                final_solution.append(((action[0][1], action[0][0]), action[1]))
+                if action[1] =='Right':
+                    final_solution.append(((action[0][1], action[0][0] + 1), action[1]))
+                elif action[1] =='Left':
+                    final_solution.append(((action[0][1], action[0][0] - 1), action[1]))
+                elif action[1] =='Up':
+                    final_solution.append(((action[0][1] - 1, action[0][0]), action[1]))
+                elif action[1] =='Down':
+                    final_solution.append(((action[0][1] + 1, action[0][0]), action[1]))
     
         return final_solution
 
@@ -637,6 +663,18 @@ def get_coordinates(warehouse):
             yield l[i:i+n]
 
     theCoordinates = (list(chunks(data, count)))
+
+def find_goal_coordinates(box, direction):
+    if direction == "Up":
+        offset = (0, 1)
+    elif direction == "Down":
+        offset = (0, -1)
+    elif direction == "Left":
+        offset = (1, 0)
+    elif direction == "Right":
+        offset = (-1, 0)
+    return add_coordinates(box, offset)
+
 
 def manhattan_distance(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
