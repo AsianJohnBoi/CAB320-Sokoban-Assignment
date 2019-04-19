@@ -34,6 +34,11 @@ from sokoban import find_2D_iterator
 
 
 def my_team():
+    '''
+    Return the list of the team members of this assignment submission as a list
+    of triplet of the form (student_number, first_name, last_name)
+
+    '''
 
     return [(9935924, 'Greyden', 'Scott'), (9935924,'John', 'Santias'), (9918205,'Alex', 'Holm')]
 
@@ -144,15 +149,19 @@ class SokobanPuzzle(search.Problem):
     An instance of the class 'SokobanPuzzle' represents a Sokoban puzzle.
     An instance contains information about the walls, the targets, the boxes
     and the worker.
+
     Your implementation should be fully compatible with the search functions of
     the provided module 'search.py'.
+
     Each instance should have at least the following attributes
     - self.allow_taboo_push
     - self.macro
+
     When self.allow_taboo_push is set to True, the 'actions' function should
     return all possible legal moves including those that move a box on a taboo
     cell. If self.allow_taboo_push is set to False, those moves should not be
     included in the returned list of actions.
+
     If self.macro is set True, the 'actions' function should return
     macro actions. If self.macro is set False, the 'actions' function should
     return elementary actions.
@@ -168,6 +177,7 @@ class SokobanPuzzle(search.Problem):
     def actions(self, state):
         """
         Return the list of actions that can be executed in the given state.
+
         As specified in the header comment of this class, the attributes
         'self.allow_taboo_push' and 'self.macro' should be tested to determine
         what type of list of actions is to be returned.
@@ -239,54 +249,6 @@ class SokobanPuzzle(search.Problem):
             return move, str(the_warehouse)
         else:
             raise ValueError("Box is outside the Warehouse")
-
-def check_each_action_and_move(warehouse, action_seq):
-    '''
-    Same purpose as check_action_seq function
-    NB: It does not check if it pushes a box onto a taboo cell.
-    
-    @param warehouse: a Warehouse object
-    @param action_seq: a list of actions
-    
-    @return
-        a altered warehouse
-    '''
-
-    for action in action_seq:
-        worker_x, worker_y = warehouse.worker
-        
-        #Get localtion of two cells we should check
-        if action == 'Left':
-            cell1 = (worker_x-1, worker_y)
-            cell2 = (worker_x-2, worker_y)
-            
-        elif action == 'Right':
-            cell1 = (worker_x+1, worker_y)
-            cell2 = (worker_x+2, worker_y)
-        
-        elif action == 'Up':
-            cell1 = (worker_x, worker_y-1)
-            cell2 = (worker_x, worker_y-2)
-        
-        elif action == 'Down':
-            cell1 = (worker_x, worker_y+1)
-            cell2 = (worker_x, worker_y+2)            
-        
-        #Check whether the worker push walls
-        if cell1 in warehouse.walls:
-            return 'Failure'
-
-        if cell1 in warehouse.boxes:
-            if cell2 in warehouse.boxes or cell2 in warehouse.walls:
-                #push two boxes or the box has already nearby the wall, faliure
-                return 'Failure'
-            #Only push one box
-            warehouse.boxes.remove(cell1)
-            warehouse.boxes.append(cell2)
-
-        warehouse.worker = cell1 
-
-    return warehouse
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -368,8 +330,11 @@ def solve_sokoban_elem(warehouse):
             For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
             If the puzzle is already in a goal state, simply return []
     '''
-    
-    
+
+    sokoban_macro_actions = solve_sokoban_macro(warehouse)
+
+    raise NotImplementedError()
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def can_go_there(warehouse, dst):
@@ -426,18 +391,35 @@ def can_go_there(warehouse, dst):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def solve_sokoban_macro(warehouse):
-    #returns [] if the boxes are on the targets
+    '''
+    Solve using macro actions the puzzle defined in the warehouse passed as
+    a parameter. A sequence of macro actions should be
+    represented by a list M of the form
+            [ ((r1,c1), a1), ((r2,c2), a2), ..., ((rn,cn), an) ]
+    For example M = [ ((3,4),'Left') , ((5,2),'Up'), ((12,4),'Down') ]
+    means that the worker first goes the box at row 3 and column 4 and pushes it left,
+    then goes to the box at row 5 and column 2 and pushes it up, and finally
+    goes the box at row 12 and column 4 and pushes it down.
+
+    @param warehouse: a valid Warehouse object
+
+    @return
+        If puzzle cannot be solved return the string 'Impossible'
+        Otherwise return M a sequence of macro actions that solves the puzzle.
+        If the puzzle is already in a goal state, simply return []
+    '''
+
     if warehouse.boxes == warehouse.targets:
         return []
     
-    macroActions = SearchMacroActions(warehouse)
+    sokoban_macro_actions = SearchMacroActions(warehouse)
 
-    #use A* graph search to move the box to the goal
-    macroSolution = search.astar_graph_search(macroActions)
-    
-    final_macro_actions = macroActions.solution(macroSolution)
-    
-    return final_macro_actions
+    sokoban_macro_solution = search.astar_graph_search(sokoban_macro_actions)
+
+    sokoban_macro_positions = sokoban_macro_actions.solution(sokoban_macro_solution)
+
+    return sokoban_macro_positions
+
     
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -485,125 +467,6 @@ class PathScanner(search.Problem):
             nextState = add_coordinates(state, worker_offset)
             if nextState not in self.warehouse.walls and nextState not in self.warehouse.boxes:
                 yield worker_offset
-
-class SearchMacroActions(search.Problem):
-
-    def __init__(self, initial):
-        self.initial = initial
-        self.present_boxes = []
-        self.goal = initial.copy(boxes=initial.targets)
-    
-    def result(self, warehouse, action):
-        backup_warehouse = self.present_boxes.copy()
-        
-        old_pos = action[0] #old position of the box
-        
-        warehouse.boxes.remove(old_pos)
-        warehouse.worker = old_pos
-        #move box to new location
-        new_position = neighouring_cells(old_pos)
-        pos = action_direction(action)
-        #move box to new location
-        warehouse.boxes.append(new_position[pos])
-
-        return warehouse
-    
-    def actions(self, warehouse):       
-        potential_moves  = []
-        #backup current boxes location
-        self.present_boxes = warehouse.boxes.copy()
-        deadlocks = deadlock_cells(warehouse)
-        
-        #get all of pushable boxes with direction, and worker locations which nearby them
-        pushable_boxes, worker_near_box = self.can_push_boxes(warehouse.copy())
-        
-        #check if each action is valid or not
-        for box in pushable_boxes:
-            #get the worker location which around boxes
-            location_around_box = set(worker_near_box) & set(neighouring_cells(box).values())
-            
-            for worker in location_around_box:
-                worker_offsets = worker[0] - box[0], worker[1] - box[1]
-                
-                #get the second cell to check if the boxes should be pushed or not
-                next_cell = box[0] - worker_offsets[0], box[1] - worker_offsets[1]
-                if next_cell not in deadlocks \
-                    and next_cell not in warehouse.walls \
-                    and next_cell not in warehouse.boxes:
-                    #the second cell is not deadlocks/boxes/walls, so it can be pushed
-                    if worker_offsets == (0, 1):
-                        potential_moves.append((box, "Up"))
-                    elif worker_offsets == (0, -1):
-                        potential_moves.append((box, "Down"))
-                    elif worker_offsets == (1, 0):
-                        potential_moves.append((box, "Left"))
-                    elif worker_offsets == (-1, 0):
-                        potential_moves.append((box, "Right"))
-                    
-        return potential_moves
-
-    def h(self, n):
-        current_heuristic = 0
-        for box in n.state.boxes:
-            #Find closest target
-            nearest_to_target = n.state.targets[0]
-            for target in n.state.targets:
-                manhattan_target = manhattan_distance(target, box)
-                manhattan_closest = manhattan_distance(nearest_to_target, box)
-                if (manhattan_target < manhattan_closest):
-                    nearest_to_target = target
-                    
-            #Update Heuristic
-            current_heuristic = current_heuristic + manhattan_distance(nearest_to_target, box)         
-    
-        return current_heuristic
-    
-    def can_push_boxes(self, warehouse):
-        pushable_boxes = set() #boxes_can_be_pushed
-        near_boxes = set() #worker_locations_nearby_boxes
-        unworkableCells = deadlock_cells(warehouse) #dead_locks
-        workableCells = workable_cells(warehouse) #valid_cells
-
-        #check all of cells worker can reach
-        for workableCell in workableCells:
-            #check any box can move to neighbour cell
-            boxes_can_push_temp = set(warehouse.boxes) & set(neighouring_cells(workableCell).values())
-            #check if worker can reach the cell and the box nearby the cell can be pushed
-            if can_go_there(warehouse, (workableCell[1], workableCell[0])) and boxes_can_push_temp != set():
-                # worker can go to this cell which is nearby one box
-                for temp_box in boxes_can_push_temp:
-                    #check each possible pushable boxes nearby the worker
-                    offset = temp_box[0]-workableCell[0], temp_box[1]-workableCell[1]
-                    second_cell = temp_box[0]+offset[0], temp_box[1]+offset[1]
-                    if second_cell not in unworkableCells \
-                    and second_cell not in warehouse.walls \
-                    and second_cell not in warehouse.boxes:
-                        near_boxes.add(workableCell)
-                        pushable_boxes.add(temp_box)
-                
-        return (pushable_boxes, near_boxes)
-
-    def goal_test(self, warehouse):
-        return warehouse.boxes == self.goal.boxes
-    
-    def solution(self, targetNode):
-        if targetNode == None:
-            return ['Impossible']
-        
-        solution = [] #stores node actions
-        final_solution = [] #final list with correct
-        
-        path = targetNode.path()
-        
-        for node in path:
-            if node is not None:
-                solution.append(node.action)
-        
-        for action in solution:
-            if action is not None:
-                final_solution.append(((action[0][1], action[0][0]), action[1]))
-    
-        return final_solution
 
 # Worker's offsets (left, right, up and down) from its current position
 worker_offsets = {'left':(-1, 0), 'right':(1, 0), 'up':(0, -1), 'down':(0, 1) }
@@ -678,113 +541,210 @@ def neighouring_cells(position):
     neighbours = { 'up':(x_position, y_position- + 1), 'down':(x_position, y_position - 1), 
                             'left':(x_position - 1, y_position), 'right':(x_position + 1, y_position) }
     return neighbours
-
-def action_direction(action):
-
-    if action[1] == "Up":
-        direction = "down"
-    elif action[1] == "Down":
-        direction = "up"
-    elif action[1] == "Right":
-        direction = "right"
-    elif action[1] == "Left":
-        direction = "left"
     
-    return direction
 
-def taboo_cells_corner(warehouse, workableCells):
-    taboo_cells = set([cell for cell in workableCells
-    if((neighouring_cells(cell)['up'] in warehouse.walls or neighouring_cells(cell)['down'] in warehouse.walls) and
-        (neighouring_cells(cell)['left'] in warehouse.walls or neighouring_cells(cell)['right'] in warehouse.walls))])
-    return taboo_cells
+class SearchMacroActions(search.Problem):
+    def __init__(self, initial):
+        self.initial = initial
+        self.goal = initial.copy(boxes=initial.targets)
+
+        self.unsolved_boxes = []
+    
+    def result(self, warehouse, action):
+        current_state = warehouse.copy(boxes=self.unsolved_boxes.copy())
+
+        prev_position = action[0]
+
+        warehouse.boxes.remove(prev_position)
+        warehouse.worker = prev_position
+
+        position = ""
+
+        #given action is [((2, 3), (1, 3)), Right]
+        if action[1] is not None:
+            if action[1] == "Up":
+                position = "Down"
+            elif action[1] == "Down":
+                position = "Up"
+            elif action[1] == "Left":
+                position = "Left"
+            elif action[1] == "Right":
+                position = "Right"
+        
+        #The box is at the new location
+        warehouse.boxes.apend(neighouring_cells(prev_position)[position])
+
+        return warehouse
+    
+    def action(self, warehouse):
+
+        potential_moves = []
+        self.unsolved_boxes = warehouse.boxes.copy()
+
+        #retrieve all the deadlocks of the warehouse
+        warehouse_deadlocks = deadlocks_of_the_warehouse(warehouse)
+
+        pushable_box, worker_positions = self.pushable_boxes(warehouse.copy())
+
+        for box in pushable_box:
+            worker_around_box = set(worker_positions) * set(neighouring_cells(box).values())
+
+            for worker in worker_around_box:
+                offset_values = worker[0] - box[0], worker[1] - box[1]
+
+                next_cell = box[0] - offset_values[0], worker[1] - offset_values[1]
+                if next_cell not in warehouse_deadlocks and \
+                    next_cell not in warehouse.walls and \
+                    next_cell not in warehouse.boxes:
+
+                    if offset_values == (0, 1):
+                        potential_moves.append((box, "Up"))
+                    elif offset_values == (0, -1):
+                        potential_moves.append((box, "Down"))
+                    elif offset_values == (1, 0):
+                        potential_moves.append((box, "Left"))
+                    elif offset_values == (-1, 0):
+                        potential_moves.append((box, "Right"))
+        
+        return potential_moves
+
+    def box_at_goal(self, warehouse):
+        if self.goal.boxes == warehouse.boxes:
+            return True
+
+    
+    def pushable_boxes(self, warehouse):
+        free_cells = workable_cells(warehouse)
+        warehouse_deadlocks = deadlocks_of_the_warehouse(warehouse)
+
+        pushable_box = set()
+        nearby_worker_position = set()
+
+        for free_cell in free_cells:
+            temporary_pushable_sol = set(warehouse.boxes) & set(neighouring_cells(free_cells).values())
+            if (temporary_pushable_sol != set() and can_go_there(warehouse, (free_cell[1], free_cell[0]))):
+                for temporary_box in temporary_pushable_sol:
+                    worker_offset = temporary_box[0] - free_cell[0], temporary_box[1] - free_cell[1]
+                    cell2 = temporary_box[0] + worker_offset[0], temporary_box[1] + worker_offset[1]
+                    if (cell2 not in warehouse_deadlocks and \
+                        cell2 not in warehouse.walls and \
+                        cell2 not in warehouse.boxes):
+                        pushable_box.add(free_cell)
+                        nearby_worker_position.add(temporary_box)
+
+        return (pushable_box, nearby_worker_position)
+    
+    def heuristic(self, n):
+        h_value = 0
+        nearest_target = n.state.targets[0]
+
+        for target in n.state.targets:
+            for box in n.state.boxes:
+                manhattan_nearest = manhattan_distance(nearest_target, box)
+                manhattan_target = manhattan_distance(target, box)
+                if (manhattan_target < manhattan_target):
+                    nearest_target = target
+            h_value = h_value + manhattan_distance(nearest_target, box)
+
+        return h_value        
+    
+    def solution(self, node):
+        if node == None:
+            return ['Impossible']
+        
+        sol = []
+        final_solution = []
+        path = node.path()
+
+        for each in path:
+            if each is not None:
+                sol.append(node.action)
+        for move in sol:
+            final_solution.append((move[0][1], move[0][0]), move[1])
+        return final_solution
+
+
+
 
 def workable_cells(warehouse):
-    frontier = set()
-    explored_cells = set()
-    frontier.add(warehouse.worker) #adds worker's position
+    #find all the free cells inside the walls
+    frontier = set().add(warehouse.worker) #(1,2) coordinate
+    explored = set()
 
     while frontier:
-        current_position = frontier.pop()
-        explored_cells.add(current_position)
+        current_position = frontier.pop() #returns and remove the last element of the set
+        explored.add(current_position)
 
-        neighbour_cells = neighouring_cells(current_position)
-       
-        for neighbour_cell in neighbour_cells.values():
-            if (neighbour_cell not in frontier 
-                and neighbour_cell not in explored_cells
-                and neighbour_cell not in warehouse.walls):
-                frontier.add(neighbour_cell)
-    return explored_cells
+        next_cells = neighouring_cells(current_position)
 
-def deadlock_cells(warehouse):
+        #check that the next cell hasn't been discovered or conflicts with the walls
+        for next_cell in next_cells.values():
+            if (next_cell not in frontier and
+                next_cell not in explored and
+                next_cell not in warehouse.walls):
+                frontier.add(neighouring_cells)
 
+    #store the explored set values in free_cells
+    return explored
+
+def deadlocks_of_the_warehouse(warehouse):
+    #store the explored set values in free_cells
     free_cells = workable_cells(warehouse)
 
-    #Remove all of target cells, which do need to be consider deadlock case
+    #mark the deadlocks of the valid cells
+
+    #wwarehouse targets is a deadlock cell
     for target in warehouse.targets:
         free_cells.discard(target)
-    
-    #Get the corner deadlock
-    corner_deadlocks = taboo_cells_corner(warehouse, free_cells)
-    
-    # Get the deadlock along the walls
-    deadlock_alongWall = set()
 
-    final_deadlocks = itertools.combinations(corner_deadlocks, 2)
-    for cell_a, cell_b in final_deadlocks: 
-        wallOrTarget = False
+    warehouse_deadlocks = set(warehouse(taboo_cells(warehouse)))
+
+    #combined tuple
+    final_deadlocks = itertools.combinations(warehouse_deadlocks, 2)
+    for cell_a, cell_b in final_deadlocks:
         x1, y1 = cell_a[0], cell_a[1]
         x2, y2 = cell_b[0], cell_b[1]
 
-        #swap values because coordinates given is in wrong order
-        if x1 > x2:
-            swap = x1
-            x1 = x2
-            x2 = swap
-        if y1 > y2:
-            swap = y1
-            y1 = y2
-            y2 = swap
-
-        if x1 == x2:
-            ## check whether there is a target or wall between them
-            for y in range(y1 + 1, y2):
-                if (x1, y) in warehouse.walls or (x1, y) in warehouse.targets:
+        #Checking for above and below walls
+        if y1 == y2:
+            if x1 > x2:
+                x1, x2 = x2, x1
+            wallOrTarget = False #target or wall between
+            for y in range(x1+1, x2):
+                if(x, y1) in warehouse.targets or (x, y1) in warehouse.walls:
                     wallOrTarget = True
                     break
             if wallOrTarget:
                 continue
-            
-            ##check whether they are along the wall 
-            left = [False for y in range(y1, y2+1) if (x1 - 1, y) not in warehouse.walls]
-            right = [False for y in range(y1, y2+1) if (x1 + 1, y) not in warehouse.walls]
-            wallIsLeft = not False in left
-            wallIsRight = not False in right
 
-            # append all deadlock cells along the wall into set
-            if wallIsLeft or wallIsRight:
-                deadlock_alongWall |=  set([(x1, y) for y in range(y1+1, y2)])
-        
-        if y1 == y2:            
-            ## check whether there is target between them
-            for x in range(x1+1,x2):
-                if (x,y1) in warehouse.walls or (x,y1) in warehouse.targets:
-                    wallOrTarget = True
-                    break
-            if wallOrTarget:
-                continue
-            
-            ##check whether they are along the wall                            
-            up = [False for x in range(x1, x2+1) if (x+1, y1-1) not in warehouse.walls]
-            down = [False for x in range(x1, x2+1) if (x, y1+1) not in warehouse.walls]
+            up = [False for x in range(x1, x2+1) if (x1+1, y-1) not in warehouse.walls]
+            down = [False for x in range(x1, x2+1) if (x1, y+1) not in warehouse.walls]
             wallIsAbove = not False in up
             wallIsBelow = not False in down
-            
-            # append all deadlock cells along the wall into set
-            if wallIsAbove or wallIsBelow:
-                deadlock_alongWall |= set([(x,y1) for x in range(x1+1, x2)])      
-    
-    # Merge all of deadlock to the single set
-    corner_deadlocks |= deadlock_alongWall
 
-    return corner_deadlocks    
+            if wallIsAbove or wallIsBelow:
+               final_deadlocks |=  set([(x1, y) for y in range(y1+1, y2)])
+
+        #Checking for left and right side walls
+        if x1 == x2:
+            if y1 > y2:
+                y1, y2 = y2, y1
+            wallOrTarget = False #target or wall between
+            for y in range(y1+1, y2):
+                if(x1, y) in warehouse.targets or (x1, y) in warehouse.walls:
+                    wallOrTarget = True
+                    break
+            if wallOrTarget:
+                continue
+
+            left = [False for y in range(y1, y2+1) if (x1-1, y) not in warehouse.walls]
+            right = [False for y in range(y1, y2+1) if (x1-1, y) not in warehouse.walls]
+            leftWalls = not False in left
+            rightWalls = not False in right
+
+            if wallIsAbove or wallIsBelow:
+               final_deadlocks |=  set([(x1, y) for y in range(y1+1, y2)])
+               
+
+    final_deadlocks |= warehouse_deadlocks
+    return final_deadlocks
